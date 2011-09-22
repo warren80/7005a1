@@ -1,13 +1,35 @@
 #include "epoll.h"
 
-int txFile(int socketFD, char *buffer, int length) {
+typedef struct communicationPacket {
+    int packetlength;
+    char getSend;
+    long fileSize;
+    char fileName[FILENAME_MAX];
+} CPACKET, *PCPACKET;
 
+void rxFile(int socketFD, char *buffer, int length) {
+    PCPACKET pkt = (PCPACKET) buffer;
+    printf("%c\n", pkt->packetlength);
+}
+
+void txFile(int socketFD, char *buffer, int length) {
+    printf("txfile\n");
+}
+
+int parseClientRequest(int socketFD, char *buffer, int length) {
 
     //probably should see if the file is there first
     int pid = fork();
+
     switch(pid) {
     case 0:
-
+        if (buffer[0] == 's') {
+            txFile(socketFD, buffer, length);
+        } else if (buffer[0] == 'g') {
+            rxFile(socketFD, buffer, length);
+        } else {
+            //error condition
+        }
         write(1, buffer, length);
         printf("\n");
         exit(EXIT_SUCCESS);
@@ -21,7 +43,6 @@ int txFile(int socketFD, char *buffer, int length) {
         }
         return 0;
     }
-    //TODO make new process to find file that matches socket data and then transmit it in its on process
     return 0;
 }
 
@@ -29,7 +50,7 @@ int main (int argc, char *argv[]) {
     int socketFD;
     int epollFD;
     struct epoll_event *events;
-    int (*fnPtr)(int, char*, int) = txFile;
+    int (*fnPtr)(int, char*, int) = parseClientRequest;
 
 
 

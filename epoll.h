@@ -14,6 +14,8 @@
 
 #define TRUE 1
 #define MAXEVENTS 64
+#define TXFILE 1
+#define RXFILE 0
 
 void newConnectionTasks(int socketFD);
 int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int));
