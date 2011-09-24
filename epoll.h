@@ -16,6 +16,7 @@
 #define MAXEVENTS 64
 #define TXFILE 1
 #define RXFILE 0
+#define MAXBUFFSIZE 2048
 
 void newConnectionTasks(int socketFD);
 int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int));

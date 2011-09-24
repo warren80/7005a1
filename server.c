@@ -1,11 +1,20 @@
 #include "epoll.h"
+#include "server.h"
 
-typedef struct communicationPacket {
-    int packetlength;
-    char getSend;
-    long fileSize;
-    char fileName[FILENAME_MAX];
-} CPACKET, *PCPACKET;
+void writeFileToSocket(FILE* pFile, int socketFD) {
+    char buf[MAXBUFFSIZE];
+    int i = 0;
+    while((buf[i++] = getc(pFile)) != EOF) {
+        if (i == MAXBUFFSIZE + 1) {
+            write(socketFD, buf, MAXBUFFSIZE);
+            i = 0;
+        }
+    }
+    pclose(pFile);
+    write(socketFD, buf, i-1);
+}
+
+
 
 void rxFile(int socketFD, char *buffer, int length) {
     PCPACKET pkt = (PCPACKET) buffer;
@@ -13,21 +22,56 @@ void rxFile(int socketFD, char *buffer, int length) {
 }
 
 void txFile(int socketFD, char *buffer, int length) {
+    PCPACKET pkt = (PCPACKET) buffer;
+    char filename[FILENAME_MAX];
+    snprintf(filename, 15 ,"files/%s", pkt->fileName);
+    filename[15] = 0;
+    printf("%s\n", filename);
+    FILE * pFile = fopen(filename, "r");
+    printf("file pointer: %d\n", (int) pFile);
+    writeFileToSocket(pFile, socketFD);
     printf("txfile\n");
 }
 
+int getClientSocket(int socketFD) {
+    int sd;
+    socklen_t socketLength;
+    struct sockaddr_in addr_in;
+    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror("Cannot create socket");
+        exit(1);
+    }
+    socketLength = sizeof(addr_in);
+    getpeername(socketFD, (struct sockaddr*)&addr_in, &socketLength);
+    addr_in.sin_port = htons(CLIENTPORT);
+    if (connect (sd, (struct sockaddr *)&addr_in, socketLength) == -1) {
+        fprintf(stderr, "Can't connect to server\n");
+        perror("connect");
+        exit(1);
+    }
+    return sd;
+}
+
+void listFiles(int socketFD, char *buffer, int length) {
+    FILE* pFile = popen("ls files -l", "r");
+    if (pFile == NULL) {
+        exit(EXIT_FAILURE);
+    }
+    writeFileToSocket(pFile, socketFD);
+}
+
 int parseClientRequest(int socketFD, char *buffer, int length) {
-
-    //probably should see if the file is there first
     int pid = fork();
-
     switch(pid) {
     case 0:
         if (buffer[0] == 's') {
-            txFile(socketFD, buffer, length);
+            txFile(getClientSocket(socketFD), buffer, length);
         } else if (buffer[0] == 'g') {
             rxFile(socketFD, buffer, length);
+        } else if (buffer[0] == 'l') {
+            listFiles(socketFD, buffer, length);
         } else {
+            printf("error\n");
             //error condition
         }
         write(1, buffer, length);
@@ -46,14 +90,11 @@ int parseClientRequest(int socketFD, char *buffer, int length) {
     return 0;
 }
 
-int main (int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
     int socketFD;
     int epollFD;
     struct epoll_event *events;
     int (*fnPtr)(int, char*, int) = parseClientRequest;
-
-
-
     if (argc != 2) {
         fprintf (stderr, "Usage: %s [port]\n", argv[0]);
         exit (EXIT_FAILURE);
@@ -65,7 +106,6 @@ int main (int argc, char *argv[]) {
     setEPollSocket(epollFD, socketFD, &events);
 
     eventLoop(socketFD, epollFD, events, fnPtr);
-
-    close (socketFD);
+    close(socketFD);
     return EXIT_SUCCESS;
 }
