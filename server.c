@@ -13,21 +13,6 @@ int fileSize(FILE * pFile) {
     return buf.st_size;
 }
 
-void writeFileToSocket(FILE* pFile, int socketFD) {
-    char buf[MAXBUFFSIZE];
-    int i = 0;
-    while((buf[i++] = getc(pFile)) != EOF) {
-        if (i == MAXBUFFSIZE + 1) {
-            write(socketFD, buf, MAXBUFFSIZE);
-            i = 0;
-        }
-    }
-    pclose(pFile);
-    write(socketFD, buf, i-1);
-}
-
-
-
 void txFile(int socketFD, char *buffer, int length) {
     PCPACKET pkt = (PCPACKET) buffer;
     printf("%c\n", pkt->packetlength);
@@ -47,7 +32,7 @@ void rxFile(int socketFD, char *buffer, int length) {
     }
 
     clientSocketFD = getClientSocket(socketFD);
-    pkt->totalPackets =
+    //pkt->totalPackets =
     writeFileToSocket(pFile,clientSocketFD);
     close(clientSocketFD);
 }
