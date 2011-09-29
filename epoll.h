@@ -12,11 +12,10 @@
 #include <sys/epoll.h>
 #include <errno.h>
 
-#define TRUE 1
-#define MAXEVENTS 64
-#define TXFILE 1
-#define RXFILE 0
-#define MAXBUFFSIZE 2048
+
+#define TRUE        1
+#define MAXEVENTS   64
+
 
 /**
  * Any tasks that may want to be performed upon new client connecting.
