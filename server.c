@@ -1,6 +1,18 @@
 #include "epoll.h"
 #include "server.h"
 
+int fileSize(FILE * pFile) {
+    int fd;
+    struct stat buf;
+
+    fd = fileno(pFile); //if you have a stream (e.g. from fopen), not a file descriptor.
+    if (fstat(fd, &buf) == -1) {
+        perror("fstat");
+        abort();
+    }
+    return buf.st_size;
+}
+
 void writeFileToSocket(FILE* pFile, int socketFD) {
     char buf[MAXBUFFSIZE];
     int i = 0;
@@ -16,21 +28,28 @@ void writeFileToSocket(FILE* pFile, int socketFD) {
 
 
 
-void rxFile(int socketFD, char *buffer, int length) {
+void txFile(int socketFD, char *buffer, int length) {
     PCPACKET pkt = (PCPACKET) buffer;
     printf("%c\n", pkt->packetlength);
 }
 
-void txFile(int socketFD, char *buffer, int length) {
+void rxFile(int socketFD, char *buffer, int length) {
     PCPACKET pkt = (PCPACKET) buffer;
+    int clientSocketFD;
     char filename[FILENAME_MAX];
     snprintf(filename, 15 ,"files/%s", pkt->fileName);
     filename[15] = 0;
-    printf("%s\n", filename);
+
     FILE * pFile = fopen(filename, "r");
-    printf("file pointer: %d\n", (int) pFile);
-    writeFileToSocket(pFile, socketFD);
-    printf("txfile\n");
+    if (pFile == NULL) {
+        perror("fopen");
+        abort();
+    }
+
+    clientSocketFD = getClientSocket(socketFD);
+    pkt->totalPackets =
+    writeFileToSocket(pFile,clientSocketFD);
+    close(clientSocketFD);
 }
 
 int getClientSocket(int socketFD) {
@@ -57,18 +76,18 @@ void listFiles(int socketFD, char *buffer, int length) {
     if (pFile == NULL) {
         exit(EXIT_FAILURE);
     }
-    writeFileToSocket(pFile, socketFD);
+    writeFileToSocket(pFile, getClientSocket(socketFD));
 }
 
 int parseClientRequest(int socketFD, char *buffer, int length) {
     int pid = fork();
     switch(pid) {
     case 0:
-        if (buffer[0] == 's') {
-            txFile(getClientSocket(socketFD), buffer, length);
-        } else if (buffer[0] == 'g') {
+        if (buffer[0] == TXMSG) {
+            txFile(socketFD, buffer, length);
+        } else if (buffer[0] == RXMSG) {
             rxFile(socketFD, buffer, length);
-        } else if (buffer[0] == 'l') {
+        } else if (buffer[0] == LIST) {
             listFiles(socketFD, buffer, length);
         } else {
             printf("error\n");
