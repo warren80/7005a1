@@ -12,11 +12,31 @@
 #include <sys/epoll.h>
 #include <errno.h>
 
-#define TRUE 1
-#define MAXEVENTS 64
-#define TXFILE 1
-#define RXFILE 0
+/**
+ * int packetlength will be used to indicate the length of the filename
+ * char msgType used to indicate the type of messages that may be sent
+ *   TXMSG for sending to server
+ *   RXMSG for recieving from server
+ *   LIST to list files in the files/ directory
+ * int totalPackets is to indicate the total number of packets to send for the completed file.
+ * char *fileName for the filename terminated with a null value
+ * @author Warren Voelkl
+ **/
+typedef struct communicationPacket {
+    int packetlength;
+    char msgType;
+    int totalPackets;
+    char fileName[FILENAME_MAX];
+} CPACKET, *PCPACKET;
+
+#define TRUE        1
+#define MAXEVENTS   64
+#define TXFILE      1
+#define RXFILE      0
 #define MAXBUFFSIZE 2048
+#define TXMSG       0
+#define RXMSG       1
+#define LIST        2
 
 /**
  * Any tasks that may want to be performed upon new client connecting.
