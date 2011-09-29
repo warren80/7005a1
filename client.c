@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-#include <stdio.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <string.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-
-#define MAXBUFFSIZE 2048
-#define COMMANDLENGTH 2
-#define MAXFILENAMESIZE 255
-
-
 #include "client.h"
 
 /**
