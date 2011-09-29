@@ -6,7 +6,6 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 
-
 #define MAXBUFFSIZE 2048
 #define COMMANDLENGTH 2
 #define MAXFILENAMESIZE 255
@@ -117,6 +116,10 @@ int main(int argc, char *argv[]){
 	}
 	srvrPort = atoi(argv[2]);	
 	server = gethostbyname(argv[1]);
+	if(server == NULL){
+		error("Failed to get host by name.");
+		return 0;
+	}
 	srvrAddr.sin_family = AF_INET;
 	
 	bcopy((char *)server->h_addr, (char *)&srvrAddr.sin_addr.s_addr, server->h_length);
