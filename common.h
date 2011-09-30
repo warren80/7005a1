@@ -2,9 +2,13 @@
 #define COMMON_H
 
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 #define MAXBUFFSIZE     2048
 #define COMMANDLENGTH   2
@@ -14,6 +18,7 @@
 #define TXMSG           0
 #define RXMSG           1
 #define LIST            2
+#define DATABUFSIZE     4096
 
 /**
  * int packetlength will be used to indicate the length of the filename
@@ -25,17 +30,27 @@
  * char *fileName for the filename terminated with a null value
  * @author Warren Voelkl
  **/
-typedef struct communicationPacket {
-    int packetlength;
-    char msgType;
-    int totalPackets;
-    char fileName[FILENAME_MAX];
-} CPACKET, *PCPACKET;
+
+#pragma pack(push)
+#pragma pack(1)
+typedef struct commpacket {
+    unsigned int pl;
+    char type;
+    char filename[FILENAME_MAX];
+} CPKT, *PCPKT;
+
+typedef struct ftpacket {
+    unsigned int packetLength;
+    unsigned int packetNum;
+    char data[DATABUFSIZE];
+} FTPKT, *PFTPKT;
+#pragma pack(pop)
 
 /**
  * reads a file from filesystem and transmits it on the requested socket
  * @author Warren Voelkl
  */
 void writeFileToSocket(FILE* pFile, int socketFD);
+void printSocketData(int sd, struct sockaddr *in_addr);
 
 #endif

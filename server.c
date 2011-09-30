@@ -1,24 +1,59 @@
 #include "epoll.h"
 #include "server.h"
 
-int fileSize(FILE * pFile) {
-    int fd;
-    struct stat buf;
+char* readAllDataFromSocket(int socketFD) {
+    char * buf;
+    buf = malloc(FILENAME_MAX);
+    size_t length, packetLength, count;
+    length = 0;
 
-    fd = fileno(pFile); //if you have a stream (e.g. from fopen), not a file descriptor.
-    if (fstat(fd, &buf) == -1) {
-        perror("fstat");
+    packetLength = read(socketFD, (char *) &length, sizeof(int));
+
+    if (packetLength != sizeof(int)) {
+        perror("read");
+        exit(1);
+    }
+
+    while (1) {
+        count = read(socketFD, &buf[length], MAXBUFFSIZE - length);
+        length += count;
+        if (length == packetLength) {
+            return buf;
+        }
+        if (count == -1) {
+            if (errno != EAGAIN) {
+                perror ("read");
+                return 0;
+            }
+        } else if(count == packetLength) {
+            return buf;
+        }
+    }
+}
+
+FILE* openFile(char* filename, char * access) {
+    char file[FILENAME_MAX];
+    snprintf(file, strlen(filename) + 6  ,"files/%s", filename);
+    FILE * pFile = fopen(file, access);
+    if (pFile == NULL) {
+        perror("fopen");
         abort();
     }
-    return buf.st_size;
+    return pFile;
 }
 
-void txFile(int socketFD, char *buffer, int length) {
-    PCPACKET pkt = (PCPACKET) buffer;
-    printf("%c\n", pkt->packetlength);
+void txFile(int socketFD, PCPKT packet) {
+    socketFD = getClientSocket(socketFD);
+    char fileAccess[2];
+    fileAccess[0] = 'r';
+    fileAccess[1] = '\0';
+    FILE * pFile = openFile(packet->filename, fileAccess);
+    writeFileToSocket(pFile, socketFD);
+    printf("File Transfer Completed");
 }
 
-void rxFile(int socketFD, char *buffer, int length) {
+void rxFile(int socketFD, PCPKT packet) {
+    /*
     PCPACKET pkt = (PCPACKET) buffer;
     int clientSocketFD;
     char filename[FILENAME_MAX];
@@ -35,12 +70,14 @@ void rxFile(int socketFD, char *buffer, int length) {
     //pkt->totalPackets =
     writeFileToSocket(pFile,clientSocketFD);
     close(clientSocketFD);
+    */
 }
 
 int getClientSocket(int socketFD) {
     int sd;
     socklen_t socketLength;
     struct sockaddr_in addr_in;
+
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("Cannot create socket");
         exit(1);
@@ -49,31 +86,35 @@ int getClientSocket(int socketFD) {
     getpeername(socketFD, (struct sockaddr*)&addr_in, &socketLength);
     addr_in.sin_port = htons(CLIENTPORT);
     if (connect (sd, (struct sockaddr *)&addr_in, socketLength) == -1) {
-        fprintf(stderr, "Can't connect to server\n");
+        fprintf(stderr, "Can't connect to client\n");
         perror("connect");
         exit(1);
     }
     return sd;
 }
 
-void listFiles(int socketFD, char *buffer, int length) {
+void listFiles(int socketFD) {
     FILE* pFile = popen("ls files -l", "r");
     if (pFile == NULL) {
         exit(EXIT_FAILURE);
     }
-    writeFileToSocket(pFile, getClientSocket(socketFD));
+    writeFileToSocket(pFile, socketFD);
 }
 
-int parseClientRequest(int socketFD, char *buffer, int length) {
+int parseClientRequest(int socketFD, char * buffer, int length) {
+    PCPKT recPacket = (PCPKT) buffer;
     int pid = fork();
     switch(pid) {
     case 0:
-        if (buffer[0] == TXMSG) {
-            txFile(socketFD, buffer, length);
-        } else if (buffer[0] == RXMSG) {
-            rxFile(socketFD, buffer, length);
-        } else if (buffer[0] == LIST) {
-            listFiles(socketFD, buffer, length);
+        if (recPacket->type == RXMSG) {
+            printf("TXMSG\n");
+            txFile(socketFD, recPacket);
+        } else if (recPacket->type == TXMSG) {
+            printf("RXMSG\n");
+            rxFile(socketFD, recPacket);
+        } else if (recPacket->type == LIST) {
+            printf("LIST\n");
+            listFiles(socketFD);
         } else {
             printf("error\n");
             //error condition

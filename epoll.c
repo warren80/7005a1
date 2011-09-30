@@ -111,7 +111,7 @@ void processIncomingNewSocket(int socketFD, int epollFD) {
         socklen_t in_len;
         int infd, epollSuccess, connectResult;
         char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-        in_len = sizeof in_addr;
+        in_len = sizeof(in_addr);
         infd = accept (socketFD, &in_addr, &in_len);
         if (infd == -1) {
             if ((errno == EAGAIN) ||

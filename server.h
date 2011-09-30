@@ -13,20 +13,20 @@
  *  saves file to files/ folder
  *  @author Warren Voelkl
  */
-void rxFile(int socketFD, char *buffer, int length);
+void rxFile(int socketFD, PCPKT packet);
 /**
  *  Called when server is requested to send a file
  *  Opens the requested file for reading.
  *  @author Warren Voelkl
  */
-void txFile(int socketFD, char *buffer, int length);
+void txFile(int socketFD, PCPKT packet);
 /**
  *  Called when server is requested to send a list of files (LS)
  *  calls the ls bash call opens a file pointer to the output then
  *  transmits contents back on socket.
  *  @author Warren Voelkl
  */
-void listFiles(int socketFD, char *buffer, int length);
+void listFiles(int socketFD);
 /**
  * Connects a socket to client on port 7000
  * @author Warren Voelkl
