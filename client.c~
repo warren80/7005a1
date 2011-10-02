@@ -100,8 +100,8 @@ void downloadFile(int sock){
     result = listen(sd, 1);
     result = accept(sd, (struct sockaddr*) &addr_in, &socklen);
     close(sd);
+
     receiveFile(result, buffer);
-    close(result);
 }
 
 /**

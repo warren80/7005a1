@@ -19,7 +19,6 @@
 #define RXMSG           1
 #define LIST            2
 #define DATABUFSIZE     4096
-#define MAXPACKETSIZE   ((2 * sizeof(unsigned int)) + DATABUFSIZE)
 
 /**
  * int packetlength will be used to indicate the length of the filename
