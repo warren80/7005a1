@@ -124,20 +124,22 @@ int main(int argc, char *argv[]){
 	int menuSelection, menuLoop = 1;
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == 0){
-                //error("Failed to create socket.\n");
+                printf("Failed to create socket.\n");
+		return 1;
 	}
 	srvrPort = atoi(argv[2]);	
 	server = gethostbyname(argv[1]);
 	if(server == NULL){
-                //error("Failed to get host by name.");
-		return 0;
+                printf("Failed to get host by name.");
+		return 1;
 	}
 	srvrAddr.sin_family = AF_INET;
 	
 	bcopy((char *)server->h_addr, (char *)&srvrAddr.sin_addr.s_addr, server->h_length);
     	srvrAddr.sin_port = htons(srvrPort);
     	if (connect(sock,(struct sockaddr *) &srvrAddr,sizeof(srvrAddr)) < 0){
-                //error("Server not found. Address and/or port number may be incorrect.\n");
+                printf("Server not found. Address and/or port number may be incorrect.\n");
+                return 1;
 	}
 
 	printMenu();
