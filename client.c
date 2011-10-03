@@ -96,7 +96,7 @@ void downloadFile(int sock){
         exit(1);
     }
     result = bind(sd,(struct sockaddr*)&addr_in,socklen);
-
+    
     result = listen(sd, 1);
     result = accept(sd, (struct sockaddr*) &addr_in, &socklen);
     close(sd);
