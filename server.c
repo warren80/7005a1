@@ -95,7 +95,7 @@ int getClientSocket(int socketFD) {
 void listFiles(int socketFD) {
     PFTPKT packet = malloc(sizeof(FTPKT));
     int c = 0, i = 0, x =0;
-    FILE* pFile = popen("ls files", "r");
+    FILE* pFile = popen("ls -l files", "r");
     if (pFile == NULL) {
         exit(EXIT_FAILURE);
     }
@@ -150,12 +150,12 @@ int main(int argc, char *argv[]) {
     int epollFD;
     struct epoll_event *events;
     int (*fnPtr)(int, char*, int) = parseClientRequest;
-    if (argc != 2) {
-        fprintf (stderr, "Usage: %s [port]\n", argv[0]);
+    if (argc != 1) {
+        fprintf (stderr, "Usage: %s\n", argv[0]);
         exit (EXIT_FAILURE);
     }
 
-    socketFD = validateSocket(argv[1]);
+    socketFD = validateSocket(SERVERPORT);
     bindandListenSocket(socketFD);
     epollFD = createEPoll();
     setEPollSocket(epollFD, socketFD, &events);
