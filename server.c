@@ -140,27 +140,21 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
         if (buffer != NULL) {
             free(buffer);
         }
-        return 0;
+
+
     }
+
     return 0;
 }
 
 int main(int argc, char *argv[]) {
-    int socketFD;
-    int epollFD;
-    struct epoll_event *events;
+
     int (*fnPtr)(int, char*, int) = parseClientRequest;
     if (argc != 1) {
         fprintf (stderr, "Usage: %s\n", argv[0]);
         exit (EXIT_FAILURE);
     }
 
-    socketFD = validateSocket(SERVERPORT);
-    bindandListenSocket(socketFD);
-    epollFD = createEPoll();
-    setEPollSocket(epollFD, socketFD, &events);
-
-    eventLoop(socketFD, epollFD, events, fnPtr);
-    close(socketFD);
+    startServer(SERVERPPORT, fnPtr);
     return EXIT_SUCCESS;
 }

@@ -18,6 +18,11 @@
 
 
 /**
+ *Starts the server from running
+ *@author Warren Voelkl
+ */
+void startServer(int port,int (*fnPtr)(int, char*, int));
+/**
  * Any tasks that may want to be performed upon new client connecting.
  * currently empty.
  * @author Warren Voelkl

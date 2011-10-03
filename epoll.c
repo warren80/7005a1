@@ -6,6 +6,18 @@ void newConnectionTasks(int socketFD) {
     this is the spot */
 }
 
+void startServer(int port,int (*fnPtr)(int, char*, int)) {
+    struct epoll_event *events;
+    int socketFD;
+    int epollFD;
+    socketFD = validateSocket(port);
+    bindandListenSocket(socketFD);
+    epollFD = createEPoll();
+    setEPollSocket(epollFD, socketFD, &events);
+    eventLoop(socketFD, epollFD, events, fnPtr);
+    close(socketFD);
+}
+
 
 
 int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int)) {
