@@ -7,6 +7,7 @@
 #include "common.h"
 
 #define CLIENTPORT 7000
+#define SERVERPORT 7001
 
 /**
  *  Called when server is about to recieve a file.

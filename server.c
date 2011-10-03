@@ -95,7 +95,7 @@ int getClientSocket(int socketFD) {
 void listFiles(int socketFD) {
     PFTPKT packet = malloc(sizeof(FTPKT));
     int c = 0, i = 0, x =0;
-    FILE* pFile = popen("ls files", "r");
+    FILE* pFile = popen("ls -l files", "r");
     if (pFile == NULL) {
         exit(EXIT_FAILURE);
     }
@@ -114,53 +114,44 @@ void listFiles(int socketFD) {
 int parseClientRequest(int socketFD, char * buffer, int length) {
     PCPKT recPacket = (PCPKT) buffer;
     int pid = fork();
+    //not currently checkout for boundries
     switch(pid) {
     case 0:
-        if (recPacket->type == RXMSG) {
-            printf("TXMSG\n");
-            txFile(socketFD, recPacket);
-        } else if (recPacket->type == TXMSG) {
-            printf("RXMSG\n");
-            rxFile(socketFD, recPacket);
-        } else if (recPacket->type == LIST) {
-            printf("LIST\n");
-            listFiles(socketFD);
-        } else {
-            printf("error\n");
-            //error condition
+        if (buffer != NULL) {
+            free(buffer);
         }
-        write(1, buffer, length);
-        printf("\n");
-        exit(EXIT_SUCCESS);
     case -1:
         perror("Fork");
         abort();
         return 1;
     default:
-        if (buffer != NULL) {
-            free(buffer);
+        if (recPacket->type == RXMSG) {
+            printf("Recieve File\n");
+            txFile(socketFD, recPacket);
+        } else if (recPacket->type == TXMSG) {
+            printf("Sending File\n");
+            rxFile(socketFD, recPacket);
+        } else if (recPacket->type == LIST) {
+            printf("List Files\n");
+            listFiles(socketFD);
+        } else {
+            printf("Invalid request\n");
         }
-        return 0;
+        write(1, buffer, length);
+        printf("\n");
+        exit(EXIT_SUCCESS);
     }
     return 0;
 }
 
 int main(int argc, char *argv[]) {
-    int socketFD;
-    int epollFD;
-    struct epoll_event *events;
+
     int (*fnPtr)(int, char*, int) = parseClientRequest;
-    if (argc != 2) {
-        fprintf (stderr, "Usage: %s [port]\n", argv[0]);
+    if (argc != 1) {
+        fprintf (stderr, "Usage: %s\n", argv[0]);
         exit (EXIT_FAILURE);
     }
 
-    socketFD = validateSocket(argv[1]);
-    bindandListenSocket(socketFD);
-    epollFD = createEPoll();
-    setEPollSocket(epollFD, socketFD, &events);
-
-    eventLoop(socketFD, epollFD, events, fnPtr);
-    close(socketFD);
+    startServer(SERVERPORT, fnPtr);
     return EXIT_SUCCESS;
 }

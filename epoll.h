@@ -18,6 +18,11 @@
 
 
 /**
+ *Starts the server from running
+ *@author Warren Voelkl
+ */
+void startServer(int port,int (*fnPtr)(int, char*, int));
+/**
  * Any tasks that may want to be performed upon new client connecting.
  * currently empty.
  * @author Warren Voelkl
@@ -38,12 +43,12 @@ void makeNonBlockingSocket (int socketDescriptor);
  * Used to fill the addrinfo struct and validate success of call.
  * @author Warren Voelkl
  */
-int getAddressResult(char *port, struct addrinfo **result);
+int getAddressResult(int port, struct addrinfo **result);
 /**
  * Binds socket and checks for success of operation
  * @author Warren Voelkl
  */
-int createAndBind(char *port);
+int createAndBind(int port);
 /**
  * Accepts all the incoming new sockets and sets them as nonblocking.
  * @author Warren Voelkl
@@ -60,7 +65,7 @@ void eventLoop(int socketFD, int epollFD, struct epoll_event *events, int (*pt2F
  * Checks to see if socket was bound properly
  * @author Warren Voelkl
  */
-int validateSocket(char* port);
+int validateSocket(int port);
 /**
  * binds the server socket and sets it to be listened to.
  * @author Warren Voelkl

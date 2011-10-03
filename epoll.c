@@ -6,6 +6,18 @@ void newConnectionTasks(int socketFD) {
     this is the spot */
 }
 
+void startServer(int port,int (*fnPtr)(int, char*, int)) {
+    struct epoll_event *events;
+    int socketFD;
+    int epollFD;
+    socketFD = validateSocket(port);
+    bindandListenSocket(socketFD);
+    epollFD = createEPoll();
+    setEPollSocket(epollFD, socketFD, &events);
+    eventLoop(socketFD, epollFD, events, fnPtr);
+    close(socketFD);
+}
+
 
 
 int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int)) {
@@ -62,14 +74,16 @@ void makeNonBlockingSocket (int socketDescriptor) {
     return;
 }
 
-int getAddressResult(char *port, struct addrinfo **result) {
+int getAddressResult(int port, struct addrinfo **result) {
     struct addrinfo hints;
     int returnValue;
+    char sPort[6];
     memset (&hints, 0, sizeof (struct addrinfo));
     hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
     hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
     hints.ai_flags = AI_PASSIVE;     /* All interfaces */
-    returnValue = getaddrinfo (NULL, port, &hints, result);
+    sprintf(sPort, "%d",port);
+    returnValue = getaddrinfo (NULL, sPort, &hints, result);
     if (returnValue != 0) {
         fprintf (stderr, "getaddrinfo: %s\n", gai_strerror (returnValue));
         return -1;
@@ -77,7 +91,7 @@ int getAddressResult(char *port, struct addrinfo **result) {
     return 0;
 }
 
-int createAndBind(char *port) {
+int createAndBind(int port) {
 
     struct addrinfo *result, *rp;
     int socketFD;
@@ -175,7 +189,7 @@ void eventLoop(int socketFD, int epollFD, struct epoll_event *events, int (*fnPt
     free (events);
 }
 
-int validateSocket(char* port) {
+int validateSocket(int port) {
     int socketFD = createAndBind (port);
     if (socketFD == -1) {
         abort ();
