@@ -39,19 +39,16 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     PFTPKT incPacket = malloc(sizeof(FTPKT));
     FILE * pFile;
     pFile = fopen(fileName, "a+");
-    printf("Read()first;\n");
     readCount = read(sock, incPacket, MAXPACKETSIZE);
     totalPackets = incPacket->packetNum;
     while(incPacket->packetNum != 0){
-        printf("preloop:");
         for(i = 0; i != incPacket->pl; ++i){
             fprintf(pFile, "%c", incPacket->data[i]);
         }
-        printf("postloop;");
         i = 0;
-        printf("Read()%i;\n", incPacket->packetNum);
         readCount = read(sock, incPacket, MAXPACKETSIZE);
-        printf("afterRead");
+        system("clear");
+	printf("%s:%i/%",fileName, (int)(incPacket->packetNum/totalPackets)*100);
     }
     for(i = 0; i != incPacket->pl; ++i){
         fprintf(pFile, "%c", incPacket->data[i]);
@@ -73,7 +70,6 @@ void downloadFile(int sock){
     struct sockaddr_in addr_in;
     socklen_t socklen = sizeof(addr_in);
     PCPKT packet = malloc(sizeof(CPKT));
-    PFTPKT buf = malloc(sizeof(FTPKT));
     
     system("clear");
     packet->type = lst;
@@ -151,13 +147,14 @@ int main(int argc, char *argv[]){
 	bcopy((char *)server->h_addr, (char *)&srvrAddr.sin_addr.s_addr, server->h_length);
     	srvrAddr.sin_port = htons(srvrPort);
     	if (connect(sock,(struct sockaddr *) &srvrAddr,sizeof(srvrAddr)) < 0){
-                printf("Server not found. Address and/or port number may be incorrect.\n");
+                printf("Server not found. Address may be incorrect.\n");
                 return 1;
 	}
 
 	printMenu();
 	while(menuLoop){
                 scanf("%i", &menuSelection);
+                getchar();
 		switch(menuSelection){
 			case 1: /*download*/
 				downloadFile(sock);
@@ -168,7 +165,7 @@ int main(int argc, char *argv[]){
 			case 0: /*exit*/
 				menuLoop = 0;
 			default:
-				printf("-%i-", menuSelection);
+				printf("Invalid menue selection, please try again.");
 				continue;
 		}
 		printMenu();

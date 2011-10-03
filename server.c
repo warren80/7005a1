@@ -120,6 +120,7 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
         if (buffer != NULL) {
             free(buffer);
         }
+        break;
     case -1:
         perror("Fork");
         abort();
