@@ -1,3 +1,21 @@
+/*------------------------------------------------------------------------------
+ * SOURCE FILE:    client.c
+ *
+ * PROGRAM:        client.out
+ *
+ * FUNCTIONS:      
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNERS:
+ *
+ * PROGRAMMERS:
+ *
+ * NOTES:
+ *
+ *----------------------------------------------------------------------------*/
 #include "client.h"
 
 /*
@@ -11,36 +29,58 @@ void usage(){
  * Simply prints the menu.
  */
 void printMenu(){
-	printf("Enter a menu number:\n1 Download from server\n2 Upload to server\n0 Quit\n");
+	printf("Enter a menu number:\n1 Download from server\n2 Upload to server\n3 Request file list\n0 Quit\n");
 }
 
 /*
  * Sends a file list requuest to the server at the passed socket and prints the 
- * returned results.
+ * returned results. Returns '1' if the server fails to list files.
  */
-void requestFileList(int sock){
+int requestFileList(int sock){
     char lst = LIST;
     PFTPKT incPacket = malloc(sizeof(FTPKT));
     PCPKT packet = malloc(sizeof(CPKT));
-    int i = 0;
+    int i = 0, count;
 
     packet->type = lst;
     packet->pl = sizeof(char) + sizeof(int);
-    write(sock, (void*)packet, packet->pl);
-    read(sock, incPacket, MAXBUFFSIZE);
+    count = write(sock, (void*)packet, packet->pl);
+    if(count == -1){
+        printf("could not write to server.\n");
+    }
+
+    count = read(sock, incPacket, MAXBUFFSIZE);
+    if(count == -1){
+        printf("could not read from server.\n");
+    }
+
+    /* check to see that the server has the file
+    if(server lists no files){
+        printf("server has no files to download.\n");
+        return 1;
+    }
+    */
+    /* print the list of files sent from the server */
     printf("p:%i Available files:\n", incPacket->pl);
     for(i = 0; i < incPacket->pl; ++i){
         printf("%c", incPacket->data[i]);
     }
+    return 0;
 }
 
+/*
+ * Listens for packets on the passed socket and writes them to a file that is 
+ * passed by name.
+ */
 void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     int readCount, i = 0, totalPackets;
     PFTPKT incPacket = malloc(sizeof(FTPKT));
     FILE * pFile;
+
     pFile = fopen(fileName, "a+");
     readCount = read(sock, incPacket, MAXPACKETSIZE);
     totalPackets = incPacket->packetNum;
+    /* write a full packet and write to file before reading next packet */
     while(incPacket->packetNum != 0){
         for(i = 0; i != incPacket->pl; ++i){
             fprintf(pFile, "%c", incPacket->data[i]);
@@ -48,8 +88,10 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
         i = 0;
         readCount = read(sock, incPacket, MAXPACKETSIZE);
         system("clear");
-	printf("%s:%i/%",fileName, (int)(incPacket->packetNum/totalPackets)*100);
+        /* print download progress */
+	printf("%s:%d%%",fileName, (double)(incPacket->packetNum/totalPackets)*100);
     }
+    /* read last packet */
     for(i = 0; i != incPacket->pl; ++i){
         fprintf(pFile, "%c", incPacket->data[i]);
     }
@@ -64,8 +106,7 @@ void downloadFile(int sock){
     char dl = RXMSG;//uploadCommand = TXMSG;
     char lst = LIST; //list file command
     char buffer[MAXBUFFSIZE];
-    int sd;
-    int result;
+    int sd, result, count;
 
     struct sockaddr_in addr_in;
     socklen_t socklen = sizeof(addr_in);
@@ -75,9 +116,8 @@ void downloadFile(int sock){
     packet->type = lst;
     packet->pl = sizeof(char);
 
-    requestFileList(sock);
-
     printf("Enter file name:");
+    // errant newline must be delt with
     fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
     fgets(buffer, sizeof(buffer), stdin);
@@ -91,7 +131,11 @@ void downloadFile(int sock){
     packet->pl = strlen(buffer) + sizeof(unsigned int) + 1;
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer) + 1);
-    write(sock,(void *) packet, packet->pl);
+    count = write(sock,(void *) packet, packet->pl);
+    if(count == -1){
+        printf("could not write to socket\n");
+    }
+
     printf("Downloading %s from server...\n", buffer);
     getpeername(sock, (struct sockaddr*)&addr_in, &socklen);
     addr_in.sin_port=htons(7000);
@@ -121,11 +165,10 @@ void uploadFile(int sock){
  * Opens a socket to the file server and prompts the user to upload or download.
  */
 int main(int argc, char *argv[]){
-        int sock, srvrPort;//, byteCount;
+        int sock, srvrPort, menuSelection, menuLoop = 1;//, byteCount;
 	struct sockaddr_in srvrAddr;
 	struct hostent *server;
-        //char buffer[MAXBUFFSIZE];
-	int menuSelection, menuLoop = 1;
+
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 
         if(argc != 2){
@@ -162,6 +205,10 @@ int main(int argc, char *argv[]){
 			case 2: /*upload*/
 				uploadFile(sock);
 				break;
+                        case 3:
+                                /* request server list */
+                                printf("print the files that the server can send");
+                                break;
 			case 0: /*exit*/
 				menuLoop = 0;
 			default:
