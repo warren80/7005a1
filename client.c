@@ -41,6 +41,7 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     pFile = fopen(fileName, "a+");
     printf("Read()first;\n");
     readCount = read(sock, incPacket, MAXPACKETSIZE);
+    totalPackets = incPacket->packetNum;
     while(incPacket->packetNum != 0){
         printf("preloop:");
         for(i = 0; i != incPacket->pl; ++i){
@@ -66,7 +67,7 @@ void downloadFile(int sock){
     char dl = RXMSG;//uploadCommand = TXMSG;
     char lst = LIST; //list file command
     char buffer[MAXBUFFSIZE];
-    int sd, readCount;
+    int sd;
     int result;
 
     struct sockaddr_in addr_in;
@@ -84,6 +85,13 @@ void downloadFile(int sock){
     fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
     fgets(buffer, sizeof(buffer), stdin);
+    
+    /* check to see if you already have the file you requested, if so do not redownload
+    if(){
+        printf("You already have a file named %s. In the current directory.");
+        return 0;
+    }
+    */
     packet->pl = strlen(buffer) + sizeof(unsigned int) + 1;
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer) + 1);
@@ -92,7 +100,7 @@ void downloadFile(int sock){
     getpeername(sock, (struct sockaddr*)&addr_in, &socklen);
     addr_in.sin_port=htons(7000);
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        perror("Cannot create socket");
+        printf("Cannot create socket");
         exit(1);
     }
     result = bind(sd,(struct sockaddr*)&addr_in,socklen);
