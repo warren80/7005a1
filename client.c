@@ -46,12 +46,12 @@ int requestFileList(int sock){
     packet->pl = sizeof(char) + sizeof(int);
     count = write(sock, (void*)packet, packet->pl);
     if(count == -1){
-        printf("could not write to server.\n");
+        printf("Could not write to server.\n");
     }
 
     count = read(sock, incPacket, MAXBUFFSIZE);
     if(count == -1){
-        printf("could not read from server.\n");
+        printf("Could not read from server.\n");
     }
 
     /* check to see that the server has the file
@@ -61,7 +61,7 @@ int requestFileList(int sock){
     }
     */
     /* print the list of files sent from the server */
-    printf("p:%i Available files:\n", incPacket->pl);
+    printf("Available files:\n");
     for(i = 0; i < incPacket->pl; ++i){
         printf("%c", incPacket->data[i]);
     }
@@ -76,9 +76,17 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     int readCount, i = 0, totalPackets;
     PFTPKT incPacket = malloc(sizeof(FTPKT));
     FILE * pFile;
+    double progressPercent;
 
     pFile = fopen(fileName, "a+");
+    if(pFile == NULL){
+        printf("Failed to open/create file \"%s\".\n", fileName);
+    }
     readCount = read(sock, incPacket, MAXPACKETSIZE);
+    if(readCount == -1){
+        printf("Failed to read\n");
+        exit(1);
+    }
     totalPackets = incPacket->packetNum;
     /* write a full packet and write to file before reading next packet */
     while(incPacket->packetNum != 0){
@@ -88,8 +96,9 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
         i = 0;
         readCount = read(sock, incPacket, MAXPACKETSIZE);
         system("clear");
-        /* print download progress */
-	printf("%s:%d%%",fileName, (double)(incPacket->packetNum/totalPackets)*100);
+        /* calculate and print download progress */
+        progressPercent = (incPacket->packetNum/totalPackets)*100;
+	printf("%s:%i%%",fileName, progressPercent);
     }
     /* read last packet */
     for(i = 0; i != incPacket->pl; ++i){
@@ -179,7 +188,7 @@ int main(int argc, char *argv[]){
                 printf("Failed to create socket.\n");
 		return 1;
 	}
-	srvrPort = atoi(argv[2]);	
+	srvrPort = SERVERPORT;
 	server = gethostbyname(argv[1]);
 	if(server == NULL){
                 printf("Failed to get host by name.");
