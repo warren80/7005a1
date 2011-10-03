@@ -123,6 +123,11 @@ int main(int argc, char *argv[]){
         //char buffer[MAXBUFFSIZE];
 	int menuSelection, menuLoop = 1;
 	sock = socket(AF_INET, SOCK_STREAM, 0);
+
+        if(argc != 2){
+            usage();
+        }
+
 	if (sock == 0){
                 printf("Failed to create socket.\n");
 		return 1;
