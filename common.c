@@ -42,11 +42,12 @@ void writeFileToSocket(FILE* pFile, int socketFD) {
     c = fgetc(pFile);
     while(c != EOF){
         packet->data[i++] = c;
+        printf("%c", c);
         c = fgetc(pFile);
     }
     
     packet->pl = i;
-    printf("Write()last;\n");
+    printf("lastpacketsize:%i", packet->pl);
     write(socketFD, packet, MAXPACKETSIZE);
     close(socketFD);
 

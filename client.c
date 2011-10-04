@@ -79,11 +79,9 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     double progressPercent;
     char filePath[MAXBUFFSIZE];
     
-    fileName[strlen(fileName) - 1] = 0;
+    fileName[strlen(fileName)] = 0;
     
     snprintf(filePath, strlen(fileName)+13, "clientFiles/%s", fileName);
-
-    printf("I am in recieve file\n");
     
     pFile = fopen(filePath, "a+");
     if(pFile == NULL){
@@ -98,21 +96,27 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     totalPackets = incPacket->packetNum;
     /* write a full packet and write to file before reading next packet */
     while(incPacket->packetNum != 0){
+        printf("m");
         for(i = 0; i != incPacket->pl; ++i){
             fprintf(pFile, "%c", incPacket->data[i]);
         }
         i = 0;
         readCount = read(sock, incPacket, MAXPACKETSIZE);
-        system("clear");
         /* calculate and print download progress */
         progressPercent = (incPacket->packetNum/totalPackets)*100;
         printf("%s:%f%%",fileName, progressPercent);
     }
     /* read last packet */
+    printf("l");
     for(i = 0; i != incPacket->pl; ++i){
+        printf(".");
         fprintf(pFile, "%c", incPacket->data[i]);
+        printf("%c", incPacket->data[i]);
     }
+
+    printf("lastpackesize:%i",i);
     fclose(pFile);
+    
 }
 
 /**
@@ -191,7 +195,7 @@ void downloadFile(int sock){
     // errant newline must be delt with
     fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
-    buffer[strlen(buffer)] = 0;
+    buffer[strlen(buffer) - 1] = 0;
     printf(">%s< strlen = %i", buffer, strlen(buffer));
     /* check to see if you already have the file you requested, if so do not redownload
     if(){
