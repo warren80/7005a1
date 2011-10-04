@@ -76,7 +76,7 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     int readCount, i = 0, totalPackets;
     PFTPKT incPacket = malloc(sizeof(FTPKT));
     FILE * pFile;
-    double progressPercent;
+    float progressPercent;
     char filePath[MAXBUFFSIZE];
     
     fileName[strlen(fileName)] = 0;
@@ -96,25 +96,23 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     totalPackets = incPacket->packetNum;
     /* write a full packet and write to file before reading next packet */
     while(incPacket->packetNum != 0){
-        printf("m");
         for(i = 0; i != incPacket->pl; ++i){
             fprintf(pFile, "%c", incPacket->data[i]);
         }
         i = 0;
         readCount = read(sock, incPacket, MAXPACKETSIZE);
         /* calculate and print download progress */
-        progressPercent = (incPacket->packetNum/totalPackets)*100;
-        printf("%s:%f%%",fileName, progressPercent);
+        progressPercent = totalPackets - incPacket->packetNum;
+        progressPercent = (progressPercent/totalPackets)*100;
+        //system("clear");
+        //printf("%s:%f%%",fileName, progressPercent);
+        printf(".");
     }
     /* read last packet */
-    printf("l");
     for(i = 0; i != incPacket->pl; ++i){
-        printf(".");
         fprintf(pFile, "%c", incPacket->data[i]);
-        printf("%c", incPacket->data[i]);
     }
-
-    printf("lastpackesize:%i",i);
+    printf("Done\n");
     fclose(pFile);
     
 }
@@ -196,7 +194,6 @@ void downloadFile(int sock){
     fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
     buffer[strlen(buffer) - 1] = 0;
-    printf(">%s< strlen = %i", buffer, strlen(buffer));
     /* check to see if you already have the file you requested, if so do not redownload
     if(){
         printf("You already have a file named %s. In the current directory.");
@@ -242,6 +239,11 @@ int main(int argc, char *argv[]){
 	struct sockaddr_in srvrAddr;
 	struct hostent *server;
 
+        if(argc != 2){
+            usage();
+            return 1;
+        }
+
         sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == 0){
                 printf("Failed to create socket.\n");
@@ -284,7 +286,7 @@ int main(int argc, char *argv[]){
                                 printf("print the files that the server can send");
                                 break;
 			case 0: /*exit*/
-				menuLoop = 0;
+				return 0;
 			default:
 				printf("Invalid menue selection, please try again.");
 				continue;
