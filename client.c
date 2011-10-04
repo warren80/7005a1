@@ -193,7 +193,7 @@ int getServerDataSocket(int socketFD) {
 void downloadFile(int sock){
     char dl = RXMSG;//uploadCommand = TXMSG;
     char buffer[MAXBUFFSIZE];
-    char filePath[MAXBUFFSIZE];
+
 
     PCPKT packet = malloc(sizeof(CPKT));
     int result;
@@ -202,9 +202,8 @@ void downloadFile(int sock){
     fflush(stdin);
     fgets(buffer, MAXBUFFSIZE - 1, stdin);
 
+
     buffer[strlen(buffer) - 1] = 0;
-    snprintf(filePath, strlen(buffer)+13, "clientFiles/%s", buffer);
-    printf("file path to check:[%s]\n", filePath);
     packet->pl = strlen(buffer) + sizeof(unsigned int)*2;
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer));
