@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include "common.h"
 
 #define CLIENTPORT 7000
@@ -32,7 +34,7 @@ void listFiles(int socketFD);
  * Connects a socket to client on port 7000
  * @author Warren Voelkl
  */
-int getClientSocket(int socketFD);
+int getClientSocket(struct sockaddr_in addr_in);
 
 int parseClientRequest(int socketFD, char *buffer, int length);
 int main(int argc, char *argv[]);

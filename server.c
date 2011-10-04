@@ -43,7 +43,6 @@ FILE* openFile(char* filename, char * access) {
 }
 
 void txFile(int socketFD, PCPKT packet) {
-    socketFD = getClientSocket(socketFD);
     char fileAccess[2];
     fileAccess[0] = 'r';
     fileAccess[1] = '\0';
@@ -72,18 +71,30 @@ void rxFile(int socketFD, PCPKT packet) {
     */
 }
 
-int getClientSocket(int socketFD) {
+int getClientSocket(struct sockaddr_in addr_in) {
     int sd;
     socklen_t socketLength;
-    struct sockaddr_in addr_in;
+    int clientEndport, result;
 
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("Cannot create socket");
         exit(1);
     }
     socketLength = sizeof(addr_in);
-    getpeername(socketFD, (struct sockaddr*)&addr_in, &socketLength);
+    clientEndport = addr_in.sin_port;
     addr_in.sin_port = htons(CLIENTPORT);
+    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror("Cannot create socket");
+        exit(1);
+    }
+    result = bind(sd,(struct sockaddr*)&addr_in,socketLength);
+    if (result == -1) {
+        fprintf(stderr, "Can't bind to port 7000\n");
+        perror("connect");
+        exit(1);
+    }
+    addr_in.sin_port = clientEndport;
+
     if (connect (sd, (struct sockaddr *)&addr_in, socketLength) == -1) {
         fprintf(stderr, "Can't connect to client\n");
         perror("connect");
@@ -108,23 +119,40 @@ void listFiles(int socketFD) {
     packet->pl = i; // packet length is date + 2 unsigned ints.
     packet->packetNum = 0;
     write(socketFD,(void *) packet, packet->pl + (2*sizeof(packet->pl)));
-    
 }
 
 int parseClientRequest(int socketFD, char * buffer, int length) {
+    struct sockaddr_in addr_in;
     PCPKT recPacket = (PCPKT) buffer;
-    int pid = fork();
-    //not currently checkout for boundries
+    int pid, port;
+    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+
+    socklen_t socketLength;
+    socketLength = sizeof(addr_in);
+    getpeername(socketFD, (struct sockaddr*)&addr_in, &socketLength);
+
+    getnameinfo((const struct sockaddr *) &addr_in, sizeof(addr_in), hbuf, sizeof(hbuf), sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV);
+    port = atoi(sbuf);
+    if (write(socketFD, &port, sizeof(int)) != sizeof(int)) {
+        printf("error\n write port back;");
+    }
+    sleep(2);
+    pid = fork();
+
+    //not currently checking for boundries
     switch(pid) {
     case 0:
         if (buffer != NULL) {
             free(buffer);
         }
+        return 0;
     case -1:
         perror("Fork");
         abort();
         return 1;
     default:
+        close(socketFD);
+        socketFD = getClientSocket(addr_in);
         if (recPacket->type == RXMSG) {
             printf("Recieve File\n");
             txFile(socketFD, recPacket);
@@ -137,7 +165,7 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
         } else {
             printf("Invalid request\n");
         }
-        write(1, buffer, length);
+        //write(1, buffer, length);
         printf("\n");
         exit(EXIT_SUCCESS);
     }

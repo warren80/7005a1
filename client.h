@@ -11,4 +11,7 @@
 #include <errno.h>
 #include "common.h"
 
+int getServerDataSocket(int socketFD);
+void downloadFileList(int sock);
+
 #endif
