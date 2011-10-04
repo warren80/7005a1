@@ -83,6 +83,7 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     
     snprintf(filePath, strlen(fileName)+13, "clientFiles/%s", fileName);
 
+    printf("I am in recieve file\n");
     
     pFile = fopen(filePath, "a+");
     if(pFile == NULL){
@@ -95,7 +96,6 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
         exit(1);
     }
     totalPackets = incPacket->packetNum;
-    printf("totalpackets%i",totalPackets );
     /* write a full packet and write to file before reading next packet */
     while(incPacket->packetNum != 0){
         for(i = 0; i != incPacket->pl; ++i){
@@ -103,10 +103,10 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
         }
         i = 0;
         readCount = read(sock, incPacket, MAXPACKETSIZE);
-       // system("clear");
+        system("clear");
         /* calculate and print download progress */
         progressPercent = (incPacket->packetNum/totalPackets)*100;
-       // printf("%s:%f%%",fileName, progressPercent);
+        printf("%s:%f%%",fileName, progressPercent);
     }
     /* read last packet */
     for(i = 0; i != incPacket->pl; ++i){
@@ -176,6 +176,7 @@ int getServerDataSocket(int socketFD) {
     return result;
 
 }
+
 void downloadFile(int sock){
     char dl = RXMSG;//uploadCommand = TXMSG;
     char buffer[MAXBUFFSIZE];
@@ -187,9 +188,11 @@ void downloadFile(int sock){
 
 
     printf("Enter file name:");
+    // errant newline must be delt with
     fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
     buffer[strlen(buffer)] = 0;
+    printf(">%s< strlen = %i", buffer, strlen(buffer));
     /* check to see if you already have the file you requested, if so do not redownload
     if(){
         printf("You already have a file named %s. In the current directory.");
@@ -201,10 +204,9 @@ void downloadFile(int sock){
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer));
 
-    result = write(sock, (void *) packet, sizeof(packet->type)*2 + strlen(buffer));
- 
-    if (result == 0) {
-        printf("failed to write all date from socket");
+    result = write(sock, (void *) packet, sizeof packet);
+    if (result != sizeof packet) {
+        printf("failed to read all date from socket");
         return;
     }
 
@@ -236,11 +238,6 @@ int main(int argc, char *argv[]){
 	struct sockaddr_in srvrAddr;
 	struct hostent *server;
 
-        if(argc != 2){
-            usage();
-            return 1;
-        }
-
         sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == 0){
                 printf("Failed to create socket.\n");
@@ -262,7 +259,7 @@ int main(int argc, char *argv[]){
 	
 	bcopy((char *)server->h_addr, (char *)&srvrAddr.sin_addr.s_addr, server->h_length);
     	srvrAddr.sin_port = htons(srvrPort);
-    	if (connect(sock,(struct sockaddr *) &srvrAddr,sizeof(srvrAddr)) == -1){
+    	if (connect(sock,(struct sockaddr *) &srvrAddr,sizeof(srvrAddr)) < 0){
                 printf("Server not found. Address may be incorrect.\n");
                 return 1;
 	}
@@ -284,7 +281,6 @@ int main(int argc, char *argv[]){
                                 break;
 			case 0: /*exit*/
 				menuLoop = 0;
-                                return 0;
 			default:
 				printf("Invalid menue selection, please try again.");
 				continue;

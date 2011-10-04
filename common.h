@@ -24,13 +24,18 @@
 #define CLIENTPORT      7000
 
 /**
- * TXMSG for sending to server
- * RXMSG for recieving from server
- * LIST to list files in the files/ directory
+ * int packetlength will be used to indicate the length of the filename
+ * char msgType used to indicate the type of messages that may be sent
+ *   TXMSG for sending to server
+ *   RXMSG for recieving from server
+ *   LIST to list files in the files/ directory
+ * int totalPackets is to indicate the total number of packets to send for the completed file.
+ * char *fileName for the filename terminated with a null value
  * @author Warren Voelkl
  **/
+
 #pragma pack(push)
-#pragma pack(1)     //removes padding from structures for easy casting of char *s
+#pragma pack(1)
 typedef struct commpacket {
     unsigned int pl;
     char type;
@@ -49,22 +54,7 @@ typedef struct ftpacket {
  * @author Warren Voelkl
  */
 void writeFileToSocket(FILE* pFile, int socketFD);
-/**
- * Function used in error checking that retrieves port from sockaddr
- * @author Warren Voelkl
- */
 void printSocketData(int sd, struct sockaddr *in_addr);
-/**
- * sets the socket option to reuse
- * @author Warren Voelkl
- * @return -1 on failure 0 on success
- */
 int allowManyBinds(int socketFD);
-/**
- * gets the filesize from a filepointer.
- * @author Warren Voelkl
- * @return the size of a file
- */
-int fileSize(FILE * pFile);
 
 #endif
