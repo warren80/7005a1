@@ -29,7 +29,7 @@ void usage(){
  * Simply prints the menu.
  */
 void printMenu(){
-	printf("Enter a menu number:\n1 Download from server\n2 Upload to server\n3 Request file list\n0 Quit\n");
+        printf("Enter a menu number:\n1 Download from server\n2 Upload to server\n0 Quit\n");
 }
 
 /*
