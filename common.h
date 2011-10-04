@@ -20,6 +20,8 @@
 #define LIST            2
 #define DATABUFSIZE     4096
 #define MAXPACKETSIZE   ((2 * sizeof(unsigned int)) + DATABUFSIZE)
+#define SERVERPORT      7001
+#define CLIENTPORT      7000
 
 /**
  * int packetlength will be used to indicate the length of the filename

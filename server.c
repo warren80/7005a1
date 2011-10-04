@@ -42,11 +42,17 @@ FILE* openFile(char* filename, char * access) {
     return pFile;
 }
 
+/*
+ * 
+ */
 void txFile(int socketFD, PCPKT packet) {
     char fileAccess[2];
     fileAccess[0] = 'r';
     fileAccess[1] = '\0';
     FILE * pFile = openFile(packet->filename, fileAccess);
+    if(pFile == NULL){
+        printf("Could not open file.\n");
+    }
     writeFileToSocket(pFile, socketFD);
 }
 
@@ -105,7 +111,7 @@ int getClientSocket(struct sockaddr_in addr_in) {
 
 void listFiles(int socketFD) {
     PFTPKT packet = malloc(sizeof(FTPKT));
-    int c = 0, i = 0, x =0;
+    int c = 0, i = 0, byteCount;
     FILE* pFile = popen("ls -l files", "r");
     if (pFile == NULL) {
         exit(EXIT_FAILURE);
@@ -113,12 +119,15 @@ void listFiles(int socketFD) {
     while(1){
         c = getc(pFile);
         if(c == EOF){ break; }
-        x++;
         packet->data[i++] = c;
     }
     packet->pl = i; // packet length is date + 2 unsigned ints.
     packet->packetNum = 0;
-    write(socketFD,(void *) packet, packet->pl + (2*sizeof(packet->pl)));
+
+    byteCount = write(socketFD,(void *) packet, packet->pl + (2*sizeof(packet->pl)));
+    if(byteCount == -1){
+        printf("failed to write to socket\n");
+    }
 }
 
 int parseClientRequest(int socketFD, char * buffer, int length) {
@@ -145,7 +154,7 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
         if (buffer != NULL) {
             free(buffer);
         }
-        return 0;
+        break;
     case -1:
         perror("Fork");
         abort();
