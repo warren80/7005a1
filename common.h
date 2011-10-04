@@ -9,6 +9,8 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
+
 
 #define MAXBUFFSIZE     2048
 #define COMMANDLENGTH   2
@@ -49,6 +51,7 @@ typedef struct ftpacket {
 } FTPKT, *PFTPKT;
 #pragma pack(pop)
 
+
 /**
  * reads a file from filesystem and transmits it on the requested socket
  * @author Warren Voelkl
@@ -56,5 +59,8 @@ typedef struct ftpacket {
 void writeFileToSocket(FILE* pFile, int socketFD);
 void printSocketData(int sd, struct sockaddr *in_addr);
 int allowManyBinds(int socketFD);
+void receiveFile(int sock, char * fileName);
+void downloadFile(int sock);
+FILE* openFile(char* filename, char * access);
 
 #endif

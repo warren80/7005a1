@@ -31,24 +31,6 @@ char* readAllDataFromSocket(int socketFD) {
     }
 }
 
-FILE* openFile(char* filename, char * access) {
-    char file[FILENAME_MAX];
-    printf("filename: %s \n", filename);
-    snprintf(file, FILENAME_MAX  ,"files/%s", filename);
-    printf("path/filename: %s \n", file);
-    FILE * pFile = fopen(file, access);
-    if (pFile == NULL) {
-        
-        printf("Could not open file named \"%s\".\n", file);
-        abort();
-    }
-    printf("sending\"%s\"", file);
-    return pFile;
-}
-
-/*
- * 
- */
 void txFile(int socketFD, PCPKT packet) {
     char fileAccess[2];
     fileAccess[0] = 'r';
@@ -66,25 +48,11 @@ void txFile(int socketFD, PCPKT packet) {
     writeFileToSocket(pFile, socketFD);
 }
 
+
+
 void rxFile(int socketFD, PCPKT packet) {
-    /*
-    PCPACKET pkt = (PCPACKET) buffer;
-    int clientSocketFD;
-    char filename[FILENAME_MAX];
-    snprintf(filename, 15 ,"files/%s", pkt->fileName);
-    filename[15] = 0;
-
-    FILE * pFile = fopen(filename, "r");
-    if (pFile == NULL) {
-        perror("fopen");
-        abort();
-    }
-
-    clientSocketFD = getClientSocket(socketFD);
-    //pkt->totalPackets =
-    writeFileToSocket(pFile,clientSocketFD);
-    close(clientSocketFD);
-    */
+    int workSocket = getServerDataSocket(socketFD);
+    downloadFile(workSocket);
 }
 
 int getClientSocket(struct sockaddr_in addr_in) {

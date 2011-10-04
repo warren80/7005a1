@@ -80,65 +80,6 @@ int requestFileList(int sock){
     return 0;
 }
 
-/*
- * Listens for packets on the passed socket and writes them to a file that is 
- * passed by name.
- */
-void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
-    int readCount, i = 0, totalPackets;
-    PFTPKT incPacket = malloc(sizeof(FTPKT));
-    FILE * pFile;
-    float progressPercent;
-    char filePath[MAXBUFFSIZE];
-    
-    fileName[strlen(fileName)] = 0;
-    
-    snprintf(filePath, strlen(fileName)+13, "clientFiles/%s", fileName);
-    
-    pFile = fopen(filePath, "a+");
-    if(pFile == NULL){
-        printf("Failed to open/create file \"%s\".\n", filePath);
-    }
-
-    readCount = read(sock, incPacket, MAXPACKETSIZE);
-    if(readCount == -1){
-        printf("Failed to read\n");
-        exit(1);
-    }
-    totalPackets = incPacket->packetNum;
-    /* write a full packet and write to file before reading next packet */
-    while(incPacket->packetNum != 0){
-        for(i = 0; i != incPacket->pl; ++i){
-            fprintf(pFile, "%c", incPacket->data[i]);
-        }
-        i = 0;
-        readCount = read(sock, incPacket, MAXPACKETSIZE);
-        /* calculate and print download progress */
-        progressPercent = totalPackets - incPacket->packetNum;
-        progressPercent = (progressPercent/totalPackets)*100;
-        printf(".");
-    }
-    /* read last packet */
-    for(i = 0; i != incPacket->pl; ++i){
-        fprintf(pFile, "%c", incPacket->data[i]);
-    }
-    printf("Done\n");
-    fclose(pFile);
-    
-}
-
-/**
- * Requests a list of files before prompting the user to enter a file. The file
- * will then be downloaded into files/.
- */
-
-
-void downloadFileList(int sock) {
-    //char lst = LIST; //list file command
-    //requestFileList(sock);
-    //packet->type = lst;
-    //packet->pl = sizeof(char);
-}
 
 int getServerDataSocket(int socketFD) {
     int result, sd;
@@ -190,8 +131,13 @@ int getServerDataSocket(int socketFD) {
 
 }
 
-void downloadFile(int sock){
-    char dl = RXMSG;//uploadCommand = TXMSG;
+
+
+/**
+ * After prompting the user for a file, the file is written to the passed port.
+ */
+void uploadFile(int sock){
+    char ul = TXMSG;
     char buffer[MAXBUFFSIZE];
 
 
@@ -205,7 +151,7 @@ void downloadFile(int sock){
 
     buffer[strlen(buffer) - 1] = 0;
     packet->pl = strlen(buffer) + sizeof(unsigned int)*2;
-    packet->type = dl;
+    packet->type = ul;
     memcpy(packet->filename, buffer, strlen(buffer));
     result = write(sock, (void *) packet, sizeof packet);
     if (result != sizeof packet) {
@@ -218,17 +164,11 @@ void downloadFile(int sock){
         printf("Failed to get new socket");
     }
 
-    printf("Downloading %s from server...\n", buffer);
+    printf("Uploading %s from server...\n", buffer);
 
-    receiveFile(sock, buffer);
+    writeFileToSocket(buffer, sock);
     close(sock);
-}
-
-/**
- * After prompting the user for a file, the file is written to the passed port.
- */
-void uploadFile(int sock){
-
+    
 }
 
 
