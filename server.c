@@ -33,14 +33,16 @@ char* readAllDataFromSocket(int socketFD) {
 
 FILE* openFile(char* filename, char * access) {
     char file[FILENAME_MAX];
-    snprintf(file, strlen(filename) + 6  ,"files/%s", filename);
+    printf("filename>%s<", filename);
+    snprintf(file, 6  ,"files/%s", filename);
+    printf("path/filename>%s<", file);
     FILE * pFile = fopen(file, access);
     if (pFile == NULL) {
         
-        printf("Could not open file named \"%s\".\n", filename);
+        printf("Could not open file named \"%s\".\n", file);
         abort();
     }
-    printf("sending\"%s\"", filename);
+    printf("sending\"%s\"", file);
     return pFile;
 }
 
@@ -51,7 +53,14 @@ void txFile(int socketFD, PCPKT packet) {
     char fileAccess[2];
     fileAccess[0] = 'r';
     fileAccess[1] = '\0';
+
+        
+        printf("Could not open file named \"%s\".\n", packet->filename);
+        
+  
     FILE * pFile = openFile(packet->filename, fileAccess);
+
+     printf("file \"%s\".\n", packet->filename);
     if(pFile == NULL){
         printf("Could not open file named \"%s\".\n", packet->filename);
     }

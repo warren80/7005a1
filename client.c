@@ -199,11 +199,12 @@ void downloadFile(int sock){
     }
     */
 
-    packet->pl = strlen(buffer) + sizeof(unsigned int) + 1;
+    packet->pl = strlen(buffer) + sizeof(unsigned int)*2;
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer));
 
     result = write(sock, (void *) packet, sizeof packet);
+ 
     if (result != sizeof packet) {
         printf("failed to read all date from socket");
         return;
@@ -237,6 +238,10 @@ int main(int argc, char *argv[]){
 	struct sockaddr_in srvrAddr;
 	struct hostent *server;
 
+        if(argc != 2){
+            usage();
+        }
+
         sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == 0){
                 printf("Failed to create socket.\n");
@@ -258,7 +263,7 @@ int main(int argc, char *argv[]){
 	
 	bcopy((char *)server->h_addr, (char *)&srvrAddr.sin_addr.s_addr, server->h_length);
     	srvrAddr.sin_port = htons(srvrPort);
-    	if (connect(sock,(struct sockaddr *) &srvrAddr,sizeof(srvrAddr)) < 0){
+    	if (connect(sock,(struct sockaddr *) &srvrAddr,sizeof(srvrAddr)) == -1){
                 printf("Server not found. Address may be incorrect.\n");
                 return 1;
 	}
@@ -280,6 +285,7 @@ int main(int argc, char *argv[]){
                                 break;
 			case 0: /*exit*/
 				menuLoop = 0;
+                                break;
 			default:
 				printf("Invalid menue selection, please try again.");
 				continue;
