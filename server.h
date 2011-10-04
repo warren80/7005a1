@@ -31,12 +31,27 @@ void txFile(int socketFD, PCPKT packet);
  */
 void listFiles(int socketFD);
 /**
- * Connects a socket to client on port 7000
+ * retrieves the address info from the server socket then creats a new socket
+ * and binds to port 7000 and the servers ip.  Then it connects to the client.
+ * if any system calls fail the process ends.
  * @author Warren Voelkl
+ * @return socket descriptor from port 7000 to client.
  */
 int getClientSocket(struct sockaddr_in addr_in);
 
+/**
+ * Takes a packet from the server.  If multiple packets have been recieves it
+ * just takes the first data and tosses the rest leave the client.
+ * then it forks a new process and either returns to the epoll loop or starts a data transmission
+ * return 0 on success exit(1) on child success or -1 on fork failure.
+ */
 int parseClientRequest(int socketFD, char *buffer, int length);
+/**
+ * Passes a function pointer of parse Client Request into the
+ * epoll server start function.
+ * @return never returns
+ * @author Warren Voelkl
+ */
 int main(int argc, char *argv[]);
 
 #endif
