@@ -33,6 +33,20 @@ void printMenu(){
 }
 
 /*
+ * duplicate returns 1 if the file already exists and 0 otherwise.
+ */
+int duplicate(char * filename){
+    printf("inDUPE");
+    FILE* pFile = fopen(filename, "r");
+    printf("batamn");           
+    if (pFile == NULL){        
+        fclose(pFile);        
+        return 0;   
+    }   
+     return 1;
+}
+
+/*
  * Sends a file list requuest to the server at the passed socket and prints the 
  * returned results. Returns '1' if the server fails to list files.
  */
@@ -181,7 +195,8 @@ int getServerDataSocket(int socketFD) {
 
 void downloadFile(int sock){
     char dl = RXMSG;//uploadCommand = TXMSG;
-    char buffer[MAXBUFFSIZE];
+    char* buffer = malloc(MAXBUFFSIZE);
+    char filePath[MAXBUFFSIZE];
 
     PCPKT packet = malloc(sizeof(CPKT));
     int result;
@@ -192,25 +207,31 @@ void downloadFile(int sock){
     printf("Enter file name:");
     // errant newline must be delt with
     fflush(stdin);
-    fgets(buffer, sizeof(buffer), stdin);
+	    printf(">%p,%s<",buffer, buffer);
+    fgets(buffer, MAXBUFFSIZE, stdin);
+    printf("motherFather!");
     buffer[strlen(buffer) - 1] = 0;
-    /* check to see if you already have the file you requested, if so do not redownload
-    if(){
-        printf("You already have a file named %s. In the current directory.");
-        return 0;
-    }
-    */
 
+    printf("lex");
+    snprintf(filePath, strlen(buffer)+13, "clientFiles/%s", buffer);
+   // printf("file path to check:[%s]", filePath);
+   // if(duplicate(filePath)){
+     //   printf("You already have a file named %s in the clientFiles/ directory.\n", buffer);
+       // return;
+   // }
+    printf("[1]");
     packet->pl = strlen(buffer) + sizeof(unsigned int)*2;
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer));
 
+    printf("[2]");
     result = write(sock, (void *) packet, sizeof packet);
     if (result != sizeof packet) {
         printf("failed to read all date from socket");
         return;
     }
 
+    printf("[3]");
     sock = getServerDataSocket(sock);
     if (sock == -1) {
         printf("Failed to get new socket");
