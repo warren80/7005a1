@@ -136,10 +136,11 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
     int pid, port;
     char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
 
+    printf("Parse Client Request\n");
+
     socklen_t socketLength;
     socketLength = sizeof(addr_in);
     getpeername(socketFD, (struct sockaddr*)&addr_in, &socketLength);
-
     getnameinfo((const struct sockaddr *) &addr_in, sizeof(addr_in), hbuf, sizeof(hbuf), sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV);
     port = atoi(sbuf);
     if (write(socketFD, &port, sizeof(int)) != sizeof(int)) {

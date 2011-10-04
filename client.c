@@ -98,7 +98,7 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
         system("clear");
         /* calculate and print download progress */
         progressPercent = (incPacket->packetNum/totalPackets)*100;
-	printf("%s:%i%%",fileName, progressPercent);
+        printf("%s:%f%%",fileName, progressPercent);
     }
     /* read last packet */
     for(i = 0; i != incPacket->pl; ++i){
@@ -132,7 +132,6 @@ int getServerDataSocket(int socketFD) {
     //getpeername(socketFD, (struct sockaddr *) &oldAddr, &socklen);
 
     while(1) {
-        printf("moo\n");
         count += read(socketFD,(void *) &port + count, sizeof(int) - count);
         if (count == sizeof(int)) {
             printf("test\n");
@@ -200,8 +199,7 @@ int getServerDataSocket(int socketFD) {
 void downloadFile(int sock){
     char dl = RXMSG;//uploadCommand = TXMSG;
     char buffer[MAXBUFFSIZE];
-
-    int sd, result, count;
+    int count;
 
 
     PCPKT packet = malloc(sizeof(CPKT));
@@ -215,7 +213,6 @@ void downloadFile(int sock){
     // errant newline must be delt with
     fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
-    fgets(buffer, sizeof(buffer), stdin);
     
     /* check to see if you already have the file you requested, if so do not redownload
     if(){
@@ -228,8 +225,6 @@ void downloadFile(int sock){
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer) + 1);
 
-
-    printf("wtf\n");
     sock = getServerDataSocket(sock);
     printf("Downloading %s from server...\n", buffer);
     if (sock == -1) {
@@ -242,12 +237,7 @@ void downloadFile(int sock){
     }
 
     printf("Downloading %s from server...\n", buffer);
-    getpeername(sock, (struct sockaddr*)&addr_in, &socklen);
-    addr_in.sin_port=htons(CLIENTPORT);
-    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        printf("Cannot create socket");
-        exit(1);
-    }
+
     receiveFile(sock, buffer);
     close(sock);
 }
