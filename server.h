@@ -24,7 +24,7 @@ void rxFile(int socketFD, PCPKT packet);
  *  Opens the requested file for reading.
  *  @author Warren Voelkl
  */
-void txFile(int socketFD, PCPKT packet);
+//void txFile(int socketFD, PCPKT packet);
 /**
  *  Called when server is requested to send a list of files (LS)
  *  calls the ls bash call opens a file pointer to the output then
@@ -55,6 +55,7 @@ int parseClientRequest(int socketFD, char *buffer, int length);
  * @author Warren Voelkl
  */
 int main(int argc, char *argv[]);
+void downloadFile(int sock, char * filename);
 
 #endif
 

@@ -1,40 +1,9 @@
 #include "common.h"
 
 
-void downloadFile(int sock){
-    char dl = RXMSG;//uploadCommand = TXMSG;
-    char buffer[MAXBUFFSIZE];
-    char filePath[MAXBUFFSIZE];
 
-    PCPKT packet = malloc(sizeof(CPKT));
-    int result;
-    printf("Enter file name:\n");
-    // errant newline must be delt with
-    fflush(stdin);
-    fgets(buffer, MAXBUFFSIZE - 1, stdin);
 
-    buffer[strlen(buffer) - 1] = 0;
-    snprintf(filePath, strlen(buffer)+13, "clientFiles/%s", buffer);
-    printf("file path to check:[%s]\n", filePath);
-    packet->pl = strlen(buffer) + sizeof(unsigned int)*2;
-    packet->type = dl;
-    memcpy(packet->filename, buffer, strlen(buffer));
-    result = write(sock, (void *) packet, sizeof packet);
-    if (result != sizeof packet) {
-        printf("failed to read all date from socket\n");
-        return;
-    }
 
-    sock = getServerDataSocket(sock);
-    if (sock == -1) {
-        printf("Failed to get new socket");
-    }
-
-    printf("Downloading %s from server...\n", buffer);
-
-    receiveFile(sock, buffer);
-    close(sock);
-}
 
 
 FILE* openFile(char* filename, char * access) {
@@ -52,16 +21,15 @@ FILE* openFile(char* filename, char * access) {
     return pFile;
 }
 
-
 void txFile(int socketFD, PCPKT packet) {
     char fileAccess[2];
     fileAccess[0] = 'r';
     fileAccess[1] = '\0';
 
-        
+
         printf("Could not open file named \"%s\".\n", packet->filename);
-        
-  
+
+
     FILE * pFile = openFile(packet->filename, fileAccess);
 
      printf("file \"%s\".\n", packet->filename);

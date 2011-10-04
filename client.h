@@ -13,5 +13,6 @@
 
 int getServerDataSocket(int socketFD);
 void downloadFileList(int sock);
+void downloadFile(int sock);
 
 #endif

@@ -60,7 +60,7 @@ void writeFileToSocket(FILE* pFile, int socketFD);
 void printSocketData(int sd, struct sockaddr *in_addr);
 int allowManyBinds(int socketFD);
 void receiveFile(int sock, char * fileName);
-void downloadFile(int sock);
 FILE* openFile(char* filename, char * access);
+void txFile(int socketFD, PCPKT packet);
 
 #endif
