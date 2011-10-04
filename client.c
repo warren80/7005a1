@@ -78,12 +78,14 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     FILE * pFile;
     double progressPercent;
 
-
+    fileName[strlen(fileName) - 1] = 0;
     printf("I am in recieve file\n");
     pFile = fopen(fileName, "a+");
     if(pFile == NULL){
         printf("Failed to open/create file \"%s\".\n", fileName);
     }
+
+        printf("file \"%s\".\n", fileName);
     readCount = read(sock, incPacket, MAXPACKETSIZE);
     if(readCount == -1){
         printf("Failed to read\n");
@@ -167,7 +169,6 @@ int getServerDataSocket(int socketFD) {
     }
     close(socketFD);
 
-
     return result;
 
 }
@@ -186,7 +187,7 @@ void downloadFile(int sock){
     // errant newline must be delt with
     fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);
-    
+    buffer[strlen(buffer)] = 0;
     /* check to see if you already have the file you requested, if so do not redownload
     if(){
         printf("You already have a file named %s. In the current directory.");
@@ -196,7 +197,7 @@ void downloadFile(int sock){
 
     packet->pl = strlen(buffer) + sizeof(unsigned int) + 1;
     packet->type = dl;
-    memcpy(packet->filename, buffer, strlen(buffer) + 1);
+    memcpy(packet->filename, buffer, strlen(buffer));
 
     result = write(sock, (void *) packet, sizeof packet);
     if (result != sizeof packet) {
@@ -257,7 +258,6 @@ int main(int argc, char *argv[]){
                 printf("Server not found. Address may be incorrect.\n");
                 return 1;
 	}
-
 
 	printMenu();
 	while(menuLoop){
