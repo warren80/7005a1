@@ -55,7 +55,6 @@ void txFile(int socketFD, PCPKT packet) {
     fileAccess[1] = '\0';
 
         
-        printf("Could not open file named \"%s\".\n", packet->filename);
         
   
     FILE * pFile = openFile(packet->filename, fileAccess);

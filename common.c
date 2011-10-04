@@ -25,6 +25,7 @@ void writeFileToSocket(FILE* pFile, int socketFD) {
     PFTPKT packet = malloc(sizeof(FTPKT));
     packet->packetNum  = totalPackets = fileSize(pFile)/DATABUFSIZE;
     packet->pl = DATABUFSIZE;
+    printf("totalpackets %i", totalPackets);
     while(packet->packetNum != 0){
         i = 0;
         for(; i != DATABUFSIZE; ++i){
@@ -34,7 +35,7 @@ void writeFileToSocket(FILE* pFile, int socketFD) {
             }
             packet->data[i] = c;
         }
-        printf("Write()[%i/%i;\n", packet->packetNum, totalPackets);
+        printf("%i/%i;\n", packet->packetNum, totalPackets);
         write(socketFD, packet, MAXPACKETSIZE);
         packet->packetNum--;
     }
