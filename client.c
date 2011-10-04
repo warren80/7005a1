@@ -144,11 +144,11 @@ int getServerDataSocket(int socketFD) {
 
     bzero((char *)&srvaddr, sizeof(struct sockaddr_in));
     srvaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    srvaddr.sin_port = htons(32145);
+    srvaddr.sin_port = htons(port);
     srvaddr.sin_family = AF_INET;
 
     printf ("reading port num %d\n", port);
-    close(socketFD);
+    //close(socketFD);
 
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("Cannot create socket");
