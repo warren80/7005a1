@@ -79,9 +79,9 @@ int getAddressResult(int port, struct addrinfo **result) {
     int returnValue;
     char sPort[6];
     memset (&hints, 0, sizeof (struct addrinfo));
-    hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
-    hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
-    hints.ai_flags = AI_PASSIVE;     /* All interfaces */
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
     sprintf(sPort, "%d",port);
     returnValue = getaddrinfo (NULL, sPort, &hints, result);
     if (returnValue != 0) {

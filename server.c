@@ -89,18 +89,15 @@ int getClientSocket(struct sockaddr_in addr_in) {
         exit(1);
     }
 
+    socketLength = sizeof(addr_in);
+    clientEndport = addr_in.sin_port;
+    addr_in.sin_port = htons(CLIENTPORT);
+
     if (allowManyBinds(sd) == -1) {
         printf("Sockopt error\n");
         exit(1);
     }
 
-    socketLength = sizeof(addr_in);
-    clientEndport = addr_in.sin_port;
-    addr_in.sin_port = htons(CLIENTPORT);
-    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        perror("Cannot create socket");
-        exit(1);
-    }
 
     result = bind(sd,(struct sockaddr*)&addr_in,socketLength);
     if (result == -1) {
@@ -192,8 +189,9 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
         } else {
             printf("Invalid request\n");
         }
-        //write(1, buffer, length);
-        printf("\n");
+        close(socketFD);
+        printf("Communication Successful");
+
         exit(EXIT_SUCCESS);
     }
     return 0;

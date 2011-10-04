@@ -32,6 +32,7 @@ void newConnectionTasks(int socketFD);
  * Reads all data currently on socket and then sends it to the fnpointer
  * TODO limit to reading length of packet.
  * @author Warren Voelkl
+ * @return 1 on success don't believe it can do anything else may as well return void
  */
 int readDataFromSocket(int socketFD, int (*fnPtr)(int, char*, int));
 /**
@@ -42,11 +43,13 @@ void makeNonBlockingSocket (int socketDescriptor);
 /**
  * Used to fill the addrinfo struct and validate success of call.
  * @author Warren Voelkl
+ * @return -1 on failure 0 on success
  */
 int getAddressResult(int port, struct addrinfo **result);
 /**
  * Binds socket and checks for success of operation
  * @author Warren Voelkl
+ * @return -1 on failure the socket file descriptor on success
  */
 int createAndBind(int port);
 /**
@@ -64,6 +67,7 @@ void eventLoop(int socketFD, int epollFD, struct epoll_event *events, int (*pt2F
 /**
  * Checks to see if socket was bound properly
  * @author Warren Voelkl
+ * @return -1 on failure or the socket file descriptor on success
  */
 int validateSocket(int port);
 /**
@@ -79,6 +83,7 @@ void setEPollSocket(int epollFD, int socketFD, struct epoll_event **pevents);
 /**
  * creates an epoll file descriptor
  * @author Warren Voelkl
+ * @return only on failure.
  */
 int createEPoll();
 
