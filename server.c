@@ -100,12 +100,15 @@ int getClientSocket(struct sockaddr_in addr_in) {
         exit(1);
     }
     addr_in.sin_port = clientEndport;
-
+    printf("Client Port: %d\n", htons(clientEndport));
+    sleep(1);
+    printf("moo\n");
     if (connect (sd, (struct sockaddr *)&addr_in, socketLength) == -1) {
         fprintf(stderr, "Can't connect to client\n");
         perror("connect");
         exit(1);
     }
+    printf("gah\n");
     return sd;
 }
 
@@ -141,11 +144,14 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
     socklen_t socketLength;
     socketLength = sizeof(addr_in);
     getpeername(socketFD, (struct sockaddr*)&addr_in, &socketLength);
+
     getnameinfo((const struct sockaddr *) &addr_in, sizeof(addr_in), hbuf, sizeof(hbuf), sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV);
+
     port = atoi(sbuf);
     if (write(socketFD, &port, sizeof(int)) != sizeof(int)) {
         printf("error\n write port back;");
     }
+
     sleep(2);
     pid = fork();
 
@@ -162,6 +168,7 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
         return 1;
     default:
         close(socketFD);
+
         socketFD = getClientSocket(addr_in);
         if (recPacket->type == RXMSG) {
             printf("Recieve File\n");

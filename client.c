@@ -146,26 +146,9 @@ int getServerDataSocket(int socketFD) {
     srvaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     srvaddr.sin_port = htons(32145);
     srvaddr.sin_family = AF_INET;
-    printf("Port %d\n",port);
 
-    printf("moo\n");
     printf ("reading port num %d\n", port);
-
-/*
-    int optval;
-    int bah;
-    optval = 1;
-    bah = setsockopt(socketFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
-    if(bah == -1) {
-        printf("sockop error\n");
-    }
-
-*/
     close(socketFD);
-
-
-
-    //printf ("port x, %d", addr_in.sin_port=htons(7000));
 
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("Cannot create socket");
@@ -203,7 +186,7 @@ void downloadFile(int sock){
 
 
     PCPKT packet = malloc(sizeof(CPKT));
-
+    int result;
     //PFTPKT buf = malloc(sizeof(FTPKT));
     
     //system("clear");
@@ -224,6 +207,11 @@ void downloadFile(int sock){
     packet->pl = strlen(buffer) + sizeof(unsigned int) + 1;
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer) + 1);
+
+    result = write(sock, (void *) packet, sizeof packet);
+    if (result != sizeof packet) {
+        //asdf
+    }
 
     sock = getServerDataSocket(sock);
     printf("Downloading %s from server...\n", buffer);
