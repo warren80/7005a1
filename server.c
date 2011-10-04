@@ -49,30 +49,50 @@ void txFile(int socketFD, PCPKT packet) {
 }
 */
 
+
+
+/*
+char fileAccess[2];
+fileAccess[0] = 'r';
+fileAccess[1] = '\0';
+
+
+    printf("Could not open file named \"%s\".\n", packet->filename);
+
+
+FILE * pFile = openFile(packet->filename, fileAccess);
+
+ printf("file \"%s\".\n", packet->filename);
+if(pFile == NULL){
+    printf("Could not open file named \"%s\".\n", packet->filename);
+}
+writeFileToSocket(pFile, socketFD);
+  */
+
 void downloadFile(int sock, char * filename){
     char dl = RXMSG;//uploadCommand = TXMSG;
     char buffer[MAXBUFFSIZE];
     char filePath[MAXBUFFSIZE];
-    struct sockaddr_in addr_in;
-    socklen_t socketLength;
-
+    //struct sockaddr_in addr_in;
+//    socklen_t socketLength;
 
     PCPKT packet = malloc(sizeof(CPKT));
-    socketLength = sizeof(addr_in);
+  //  socketLength = sizeof(addr_in);
     printf("Enter file name:\n");
     // errant newline must be delt with
     fflush(stdin);
     fgets(buffer, MAXBUFFSIZE - 1, stdin);
 
     buffer[strlen(buffer) - 1] = 0;
-    snprintf(filePath, strlen(buffer)+13, "clientFiles/%s", buffer);
+    snprintf(filePath, strlen(buffer)+6, "files/%s", buffer);
     printf("file path to check:[%s]\n", filePath);
     packet->pl = strlen(buffer) + sizeof(unsigned int)*2;
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer));
-
+/*
     getpeername(sock, (struct sockaddr*)&addr_in, &socketLength);
     sock = getClientSocket(addr_in);
+    */
     if (sock == -1) {
         printf("Failed to get new socket");
     }
@@ -87,6 +107,7 @@ void downloadFile(int sock, char * filename){
 void rxFile(int socketFD, PCPKT packet) {
     //int workSocket = getServerDataSocket(socketFD);
     downloadFile(socketFD, packet->filename);
+
 }
 
 int getClientSocket(struct sockaddr_in addr_in) {
@@ -163,20 +184,6 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
     socketLength = sizeof(addr_in);
     getpeername(socketFD, (struct sockaddr*)&addr_in, &socketLength);
 
-    /*
-    server = gethostbyname(argv[1]);
-    if(server == NULL){
-            printf("Failed to get host by name.");
-            return 1;
-    }
-    struct hostent *server;
-    srvrAddr.sin_family = AF_INET;
-
-    bcopy((char *)server->h_addr, (char *)&srvrAddr.sin_addr.s_addr, server->h_length);
-    srvrAddr.sin_port = htons(srvrPort);
-    */
-
-
     getnameinfo((const struct sockaddr *) &addr_in, sizeof(addr_in), hbuf, sizeof(hbuf), sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV);
 
     port = atoi(sbuf);
@@ -199,7 +206,7 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
         return 1;
     default:
         close(socketFD);
-
+        printf("moo\n");
         socketFD = getClientSocket(addr_in);
         if (recPacket->type == RXMSG) {
             printf("Recieve File\n");
