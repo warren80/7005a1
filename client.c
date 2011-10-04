@@ -122,14 +122,14 @@ void downloadFileList(int sock) {
 
 int getServerDataSocket(int socketFD) {
     int result, sd;
-    int port;
+    int port = 0;
     int count = 0;
 
     struct sockaddr_in srvaddr, oldAddr;
     //srvaddr.sin_addr.in_addr = INADDR_ANY;
 
     socklen_t socklen = sizeof(oldAddr);
-    //getpeername(socketFD, (struct sockaddr *) &oldAddr, &socklen);
+    getpeername(socketFD, (struct sockaddr *) &oldAddr, &socklen);
 
     while(1) {
         count += read(socketFD,(void *) &port + count, sizeof(int) - count);
@@ -140,13 +140,14 @@ int getServerDataSocket(int socketFD) {
         printf("moo\n");
     }
 
-    close(socketFD);
+    //close(socketFD);
 
-    bzero((char *)&srvaddr, sizeof(struct sockaddr_in));
-    srvaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    srvaddr.sin_port = htons(port);
-    srvaddr.sin_family = AF_INET;
+    //bzero((char *)&srvaddr, sizeof(struct sockaddr_in));
+    //srvaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    //srvaddr.sin_port = htons(port);
+    //srvaddr.sin_family = AF_INET;
 
+    oldAddr.sin_port = htons(port);
     printf ("reading port num %d\n", port);
     //close(socketFD);
 
@@ -156,23 +157,35 @@ int getServerDataSocket(int socketFD) {
     }
     printf("moo\n");
 
-    result = bind(sd,(struct sockaddr*)&srvaddr,sizeof srvaddr);
+    int bah;
+    int optval = 1;
+    bah = setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+    if(bah == -1) {
+        printf("sockop error\n");
+        return -1;
+    }
+    printf("Socket Val set sock up %d\n", sd);
+
+    result = bind(sd,(struct sockaddr*)&oldAddr,sizeof oldAddr);
     if (result == -1) {
         printf("failed to bind\n");
         return -1;
     }
-
+    printf("Socket bind set sock up %d\n", sd);
     result = listen(sd, 1);
     if (result == -1) {
         printf("failed to listen\n");
         return -1;
     }
+    printf("Socket Val set sock up %d\n", sd);
     result = accept(sd, (struct sockaddr*) &srvaddr, &socklen);
     if (result == -1) {
         printf("failed to accept\n");
         return -1;
     }
+    printf("Socket Val set sock up %d\n", sd);
     printf("result: %d\nSocket: %d\n", result, sd);
+    close(socketFD);
 
 
     return result;
@@ -251,16 +264,17 @@ int main(int argc, char *argv[]){
 	struct hostent *server;
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
-
         bah = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
         if(bah == -1) {
             printf("sockop error\n");
+            return 0;
         }
 
 	if (sock == 0){
                 printf("Failed to create socket.\n");
 		return 1;
 	}
+
 	srvrPort = SERVERPORT;
 	server = gethostbyname(argv[1]);
 	if(server == NULL){
