@@ -101,12 +101,14 @@ int getClientSocket(struct sockaddr_in addr_in) {
         perror("Cannot create socket");
         exit(1);
     }
+
     result = bind(sd,(struct sockaddr*)&addr_in,socketLength);
     if (result == -1) {
         fprintf(stderr, "Can't bind to port 7000\n");
         perror("connect");
         exit(1);
     }
+
     addr_in.sin_port = clientEndport;
     printf("Client Port: %d\n", htons(clientEndport));
     sleep(1);
@@ -116,6 +118,7 @@ int getClientSocket(struct sockaddr_in addr_in) {
         perror("connect");
         exit(1);
     }
+
     printf("gah\n");
     return sd;
 }
@@ -160,7 +163,6 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
         printf("error\n write port back;");
     }
 
-    sleep(2);
     pid = fork();
 
     //not currently checking for boundries
