@@ -200,38 +200,23 @@ void downloadFile(int sock){
 
     PCPKT packet = malloc(sizeof(CPKT));
     int result;
-
-    //system("clear");
-
-
-    printf("Enter file name:");
+    printf("Enter file name:\n");
     // errant newline must be delt with
     fflush(stdin);
-	    printf(">%p,%s<",buffer, buffer);
-    fgets(buffer, MAXBUFFSIZE, stdin);
-    printf("motherFather!");
-    buffer[strlen(buffer) - 1] = 0;
+    fgets(buffer, MAXBUFFSIZE - 1, stdin);
 
-    printf("lex");
+    buffer[strlen(buffer) - 1] = 0;
     snprintf(filePath, strlen(buffer)+13, "clientFiles/%s", buffer);
-    printf("file path to check:[%s]", filePath);
-    if(duplicate(filePath)){
-          printf("You already have a file named %s in the clientFiles/ directory.\n", buffer);
-          return;
-    }
-    printf("[1]");
+    printf("file path to check:[%s]\n", filePath);
     packet->pl = strlen(buffer) + sizeof(unsigned int)*2;
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer));
-
-    printf("[2]");
     result = write(sock, (void *) packet, sizeof packet);
     if (result != sizeof packet) {
-        printf("failed to read all date from socket");
+        printf("failed to read all date from socket\n");
         return;
     }
 
-    printf("[3]");
     sock = getServerDataSocket(sock);
     if (sock == -1) {
         printf("Failed to get new socket");
