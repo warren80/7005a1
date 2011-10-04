@@ -86,6 +86,12 @@ int getClientSocket(struct sockaddr_in addr_in) {
         perror("Cannot create socket");
         exit(1);
     }
+
+    if (allowManyBinds(sd) == -1) {
+        printf("Sockopt error\n");
+        exit(1);
+    }
+
     socketLength = sizeof(addr_in);
     clientEndport = addr_in.sin_port;
     addr_in.sin_port = htons(CLIENTPORT);

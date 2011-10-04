@@ -68,3 +68,14 @@ void printSocketData(int sd, struct sockaddr *in_addr) {
         printf("u have no clue");
     }
 }
+
+int allowManyBinds(int socketFD) {
+    int result;
+    int optval = 1;
+    result = setsockopt(socketFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+    if(result == -1) {
+        printf("sockop error\n");
+        return -1;
+    }
+    return 0;
+}

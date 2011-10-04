@@ -55,5 +55,6 @@ typedef struct ftpacket {
  */
 void writeFileToSocket(FILE* pFile, int socketFD);
 void printSocketData(int sd, struct sockaddr *in_addr);
+int allowManyBinds(int socketFD);
 
 #endif

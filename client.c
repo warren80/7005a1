@@ -78,6 +78,8 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     FILE * pFile;
     double progressPercent;
 
+
+    printf("I am in recieve file\n");
     pFile = fopen(fileName, "a+");
     if(pFile == NULL){
         printf("Failed to open/create file \"%s\".\n", fileName);
@@ -134,57 +136,35 @@ int getServerDataSocket(int socketFD) {
     while(1) {
         count += read(socketFD,(void *) &port + count, sizeof(int) - count);
         if (count == sizeof(int)) {
-            printf("test\n");
             break;
         }
-        printf("moo\n");
     }
 
-    //close(socketFD);
-
-    //bzero((char *)&srvaddr, sizeof(struct sockaddr_in));
-    //srvaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    //srvaddr.sin_port = htons(port);
-    //srvaddr.sin_family = AF_INET;
-
     oldAddr.sin_port = htons(port);
-    printf ("reading port num %d\n", port);
-    //close(socketFD);
 
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("Cannot create socket");
         exit(1);
     }
-    printf("moo\n");
-
-    int bah;
-    int optval = 1;
-    bah = setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
-    if(bah == -1) {
-        printf("sockop error\n");
+    if (allowManyBinds(sd) == -1) {
+        printf("Sockopt error\n");
         return -1;
     }
-    printf("Socket Val set sock up %d\n", sd);
-
     result = bind(sd,(struct sockaddr*)&oldAddr,sizeof oldAddr);
     if (result == -1) {
         printf("failed to bind\n");
         return -1;
     }
-    printf("Socket bind set sock up %d\n", sd);
     result = listen(sd, 1);
     if (result == -1) {
         printf("failed to listen\n");
         return -1;
     }
-    printf("Socket Val set sock up %d\n", sd);
     result = accept(sd, (struct sockaddr*) &srvaddr, &socklen);
     if (result == -1) {
         printf("failed to accept\n");
         return -1;
     }
-    printf("Socket Val set sock up %d\n", sd);
-    printf("result: %d\nSocket: %d\n", result, sd);
     close(socketFD);
 
 
@@ -195,13 +175,10 @@ int getServerDataSocket(int socketFD) {
 void downloadFile(int sock){
     char dl = RXMSG;//uploadCommand = TXMSG;
     char buffer[MAXBUFFSIZE];
-    int count;
-
 
     PCPKT packet = malloc(sizeof(CPKT));
     int result;
-    //PFTPKT buf = malloc(sizeof(FTPKT));
-    
+
     //system("clear");
 
 
@@ -223,18 +200,13 @@ void downloadFile(int sock){
 
     result = write(sock, (void *) packet, sizeof packet);
     if (result != sizeof packet) {
-        //asdf
+        printf("failed to read all date from socket");
+        return;
     }
 
     sock = getServerDataSocket(sock);
-    printf("Downloading %s from server...\n", buffer);
     if (sock == -1) {
         printf("Failed to get new socket");
-    }
-
-    count = write(sock,(void *) packet, packet->pl);
-    if(count == -1) {
-        printf("could not write to socket\n");
     }
 
     printf("Downloading %s from server...\n", buffer);
@@ -257,23 +229,19 @@ void uploadFile(int sock){
  */
 int main(int argc, char *argv[]){
         int sock, srvrPort, menuSelection, menuLoop = 1;//, byteCount;
-        int optval;
-        int bah;
-        optval = 1;
 	struct sockaddr_in srvrAddr;
 	struct hostent *server;
 
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-        bah = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
-        if(bah == -1) {
-            printf("sockop error\n");
-            return 0;
-        }
-
+        sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == 0){
                 printf("Failed to create socket.\n");
 		return 1;
 	}
+
+        if (allowManyBinds(sock) == -1) {
+            printf("Failed to set sock opt\n");
+            return 0;
+        }
 
 	srvrPort = SERVERPORT;
 	server = gethostbyname(argv[1]);
