@@ -36,9 +36,7 @@ void printMenu(){
  * duplicate returns 1 if the file already exists and 0 otherwise.
  */
 int duplicate(char * filename){
-    printf("inDUPE");
     FILE* pFile = fopen(filename, "r");
-    printf("batamn");           
     if (pFile == NULL){        
         fclose(pFile);        
         return 0;   
@@ -118,8 +116,6 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
         /* calculate and print download progress */
         progressPercent = totalPackets - incPacket->packetNum;
         progressPercent = (progressPercent/totalPackets)*100;
-        //system("clear");
-        //printf("%s:%f%%",fileName, progressPercent);
         printf(".");
     }
     /* read last packet */
@@ -201,9 +197,6 @@ void downloadFile(int sock){
     PCPKT packet = malloc(sizeof(CPKT));
     int result;
 
-    //system("clear");
-
-
     printf("Enter file name:");
     // errant newline must be delt with
     fflush(stdin);
@@ -256,7 +249,7 @@ void uploadFile(int sock){
  * Opens a socket to the file server and prompts the user to upload or download.
  */
 int main(int argc, char *argv[]){
-        int sock, srvrPort, menuSelection, menuLoop = 1;//, byteCount;
+        int sock, srvrPort, menuSelection, menuLoop = 1;
 	struct sockaddr_in srvrAddr;
 	struct hostent *server;
 
