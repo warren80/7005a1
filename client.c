@@ -77,15 +77,19 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     PFTPKT incPacket = malloc(sizeof(FTPKT));
     FILE * pFile;
     double progressPercent;
-
+    char filePath[MAXBUFFSIZE];
+    
     fileName[strlen(fileName) - 1] = 0;
+    
+    snprintf(filePath, strlen(fileName)+13, "clientFiles/%s", fileName);
+
     printf("I am in recieve file\n");
-    pFile = fopen(fileName, "a+");
+    
+    pFile = fopen(filePath, "a+");
     if(pFile == NULL){
-        printf("Failed to open/create file \"%s\".\n", fileName);
+        printf("Failed to open/create file \"%s\".\n", filePath);
     }
 
-        printf("file \"%s\".\n", fileName);
     readCount = read(sock, incPacket, MAXPACKETSIZE);
     if(readCount == -1){
         printf("Failed to read\n");
