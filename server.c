@@ -90,6 +90,7 @@ void rxFile(int socketFD, PCPKT packet) {
 
 int getClientSocket(struct sockaddr_in addr_in) {
     int sd;
+    struct sockaddr_in temp;
     socklen_t socketLength;
     int clientEndport, result;
 
@@ -107,25 +108,24 @@ int getClientSocket(struct sockaddr_in addr_in) {
         exit(1);
     }
 
-
+    temp.sin_addr = addr_in.sin_addr;
+    addr_in.sin_addr.s_addr= htonl(INADDR_ANY);
     result = bind(sd,(struct sockaddr*)&addr_in,socketLength);
     if (result == -1) {
         fprintf(stderr, "Can't bind to port 7000\n");
         perror("connect");
         exit(1);
     }
-
+    printf("Client connected: %s\n", inet_ntoa(temp.sin_addr));
     addr_in.sin_port = clientEndport;
+    addr_in.sin_addr = temp.sin_addr;
     printf("Client Port: %d\n", htons(clientEndport));
-    sleep(1);
-    printf("moo\n");
     if (connect (sd, (struct sockaddr *)&addr_in, socketLength) == -1) {
         fprintf(stderr, "Can't connect to client\n");
         perror("connect");
         exit(1);
     }
 
-    printf("gah\n");
     return sd;
 }
 
@@ -161,6 +161,20 @@ int parseClientRequest(int socketFD, char * buffer, int length) {
     socklen_t socketLength;
     socketLength = sizeof(addr_in);
     getpeername(socketFD, (struct sockaddr*)&addr_in, &socketLength);
+
+    /*
+    server = gethostbyname(argv[1]);
+    if(server == NULL){
+            printf("Failed to get host by name.");
+            return 1;
+    }
+    struct hostent *server;
+    srvrAddr.sin_family = AF_INET;
+
+    bcopy((char *)server->h_addr, (char *)&srvrAddr.sin_addr.s_addr, server->h_length);
+    srvrAddr.sin_port = htons(srvrPort);
+    */
+
 
     getnameinfo((const struct sockaddr *) &addr_in, sizeof(addr_in), hbuf, sizeof(hbuf), sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV);
 

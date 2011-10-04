@@ -5,19 +5,22 @@
  *
  * FUNCTIONS:      
  *
- * DATE:           Oct 2011
+ * DATE:
  *
  * REVISIONS:
  *
- * DESIGNERS:      Warren Voelkl & Matthew Hill
+ * DESIGNERS:
  *
- * PROGRAMMERS:    Warren Voelkl & Matthew Hill
+ * PROGRAMMERS:
  *
- * NOTES:          client for a tcp file transfer program.
+ * NOTES:
  *
  *----------------------------------------------------------------------------*/
 #include "client.h"
 
+/*
+ * Simply prints the clients usage to stderr.
+ */
 void usage(){
 	fprintf(stderr,"clnt [hostname] [port]\n");
 }
@@ -29,20 +32,6 @@ void printMenu(){
 	printf("Enter a menu number:\n1 Download from server\n2 Upload to server\n3 Request file list\n0 Quit\n");
 }
 
-/*------------------------------------------------------------------------------
- * FUNCTION:      duplicate
- *
- * DATE:          Oct 2011
- *
- * REVISIONS:
- *
- * DESIGNERS:     Matthew Hill
- *
- * PROGRAMMERS:   Matthew Hill
- *
- * NOTES:         checks to see if a file already exists.
- *
- *----------------------------------------------------------------------------*/
 /*
  * duplicate returns 1 if the file already exists and 0 otherwise.
  */
@@ -55,33 +44,23 @@ int duplicate(char * filename){
      return 1;
 }
 
-/*------------------------------------------------------------------------------
- * FUNCTION:      requestFileList
- *
- * DATE:          Oct 2011
- *
- * REVISIONS:   
- *
- * DESIGNERS:     Matthew Hill
- *
- * PROGRAMMERS:   Matthew Hill
- *
- * NOTES:         Requests a file list from <sock> and prints it to screen.
- *
- *----------------------------------------------------------------------------*/
+/*
+ * Sends a file list requuest to the server at the passed socket and prints the 
+ * returned results. Returns '1' if the server fails to list files.
+ */
 int requestFileList(int sock){
     char lst = LIST;
     PFTPKT incPacket = malloc(sizeof(FTPKT));
     PCPKT packet = malloc(sizeof(CPKT));
     int i = 0, count;
-    /* packet is a request list */
+
     packet->type = lst;
     packet->pl = sizeof(char) + sizeof(int);
     count = write(sock, (void*)packet, packet->pl);
     if(count == -1){
         printf("Could not write to server.\n");
     }
-    /* read the file list from socket */
+
     count = read(sock, incPacket, MAXBUFFSIZE);
     if(count == -1){
         printf("Could not read from server.\n");
@@ -93,7 +72,6 @@ int requestFileList(int sock){
         return 1;
     }
     */
-
     /* print the list of files sent from the server */
     printf("Available files:\n");
     for(i = 0; i < incPacket->pl; ++i){
@@ -102,36 +80,26 @@ int requestFileList(int sock){
     return 0;
 }
 
-/*------------------------------------------------------------------------------
- * FUNCTION:      receiveFile
- *
- * DATE:          Oct 2011
- *
- * REVISIONS:
- *
- * DESIGNERS:     Matthew Hill
- *
- * PROGRAMMERS:   Matthew Hill
- *
- * NOTES:         Reads from <sock> and writes the file to clientFiles/<name>.
- *
- *----------------------------------------------------------------------------*/
+/*
+ * Listens for packets on the passed socket and writes them to a file that is 
+ * passed by name.
+ */
 void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     int readCount, i = 0, totalPackets;
     PFTPKT incPacket = malloc(sizeof(FTPKT));
     FILE * pFile;
     float progressPercent;
     char filePath[MAXBUFFSIZE];
-    /* deals with a newline we do not want on the end of our filename*/
+    
     fileName[strlen(fileName)] = 0;
-    /* concat the file name onto the path */
+    
     snprintf(filePath, strlen(fileName)+13, "clientFiles/%s", fileName);
     
     pFile = fopen(filePath, "a+");
     if(pFile == NULL){
         printf("Failed to open/create file \"%s\".\n", filePath);
     }
-    /* read the first packet and grab the totalPackets value for progress bar*/
+
     readCount = read(sock, incPacket, MAXPACKETSIZE);
     if(readCount == -1){
         printf("Failed to read\n");
@@ -159,24 +127,12 @@ void receiveFile(int sock, char fileName[MAXBUFFSIZE]){
     
 }
 
-/*------------------------------------------------------------------------------
- * SOURCE FILE:    client.c
- *
- * PROGRAM:        client.out
- *
- * FUNCTIONS:      
- *
- * DATE:
- *
- * REVISIONS:
- *
- * DESIGNERS:
- *
- * PROGRAMMERS:
- *
- * NOTES:
- *
- *----------------------------------------------------------------------------*/
+/**
+ * Requests a list of files before prompting the user to enter a file. The file
+ * will then be downloaded into files/.
+ */
+
+
 void downloadFileList(int sock) {
     //char lst = LIST; //list file command
     //requestFileList(sock);
@@ -184,21 +140,6 @@ void downloadFileList(int sock) {
     //packet->pl = sizeof(char);
 }
 
-/*------------------------------------------------------------------------------
- * FUNCTION:      getServerDataSocket
- *
- * DATE:          Oct 2011
- *
- * REVISIONS:
- *
- * DESIGNERS:     Warren Voelkl
- *
- * PROGRAMMERS:   Warren Voelkl
- *
- * NOTES:         Using the original socket, getServerDataSocket gets a work
- *                socket on port 7000 so we can transfer files.
- *
- *----------------------------------------------------------------------------*/
 int getServerDataSocket(int socketFD) {
     int result, sd;
     int port = 0;
@@ -227,6 +168,7 @@ int getServerDataSocket(int socketFD) {
         printf("Sockopt error\n");
         return -1;
     }
+    oldAddr.sin_addr.s_addr= htonl(INADDR_ANY);
     result = bind(sd,(struct sockaddr*)&oldAddr,sizeof oldAddr);
     if (result == -1) {
         printf("failed to bind\n");
@@ -248,34 +190,21 @@ int getServerDataSocket(int socketFD) {
 
 }
 
-/*------------------------------------------------------------------------------
- * FUNCTION:      downloadFile
- *
- * DATE:          Oct 2011
- *
- * REVISIONS:  
- *
- * DESIGNERS:     Matthew Hill
- *
- * PROGRAMMERS:   Matthew Hill
- *
- * NOTES:         Gets and prepares a file name and path to communicate with
- *                the server and download a file.
- *
- *----------------------------------------------------------------------------*/
 void downloadFile(int sock){
     char dl = RXMSG;//uploadCommand = TXMSG;
     char buffer[MAXBUFFSIZE];
     char filePath[MAXBUFFSIZE];
+
     PCPKT packet = malloc(sizeof(CPKT));
     int result;
-
     printf("Enter file name:\n");
+    // errant newline must be delt with
     fflush(stdin);
     fgets(buffer, MAXBUFFSIZE - 1, stdin);
-    /* trim a newline we do not want */
+
     buffer[strlen(buffer) - 1] = 0;
     snprintf(filePath, strlen(buffer)+13, "clientFiles/%s", buffer);
+    printf("file path to check:[%s]\n", filePath);
     packet->pl = strlen(buffer) + sizeof(unsigned int)*2;
     packet->type = dl;
     memcpy(packet->filename, buffer, strlen(buffer));
@@ -284,52 +213,27 @@ void downloadFile(int sock){
         printf("failed to read all date from socket\n");
         return;
     }
-    /* get the socket for doing work */
+
     sock = getServerDataSocket(sock);
     if (sock == -1) {
         printf("Failed to get new socket");
     }
 
     printf("Downloading %s from server...\n", buffer);
-    /* pass the name of the file to the function that will write to file */
+
     receiveFile(sock, buffer);
     close(sock);
 }
 
-/*------------------------------------------------------------------------------
- * FUNCTION:      uploadFile
- *
- * DATE:
- *
- * REVISIONS:
- *
- * DESIGNERS:     X
- *
- * PROGRAMMERS:   X
- *
- * NOTES:         nothing in this function yet
- *
- *----------------------------------------------------------------------------*/
+/**
+ * After prompting the user for a file, the file is written to the passed port.
+ */
 void uploadFile(int sock){
 
 }
 
 
 
-/*------------------------------------------------------------------------------
- * FUNCTION:      main
- *
- * DATE:          Oct 2011
- *
- * REVISIONS:
- *
- * DESIGNERS:     Matthew Hill
- *
- * PROGRAMMERS:   Matthew Hill
- *
- * NOTES:         Main binds the first socket and runs the menu loop
- *
- *----------------------------------------------------------------------------*/
 /*
  * Opens a socket to the file server and prompts the user to upload or download.
  */
