@@ -195,7 +195,7 @@ int getServerDataSocket(int socketFD) {
 
 void downloadFile(int sock){
     char dl = RXMSG;//uploadCommand = TXMSG;
-    char* buffer = malloc(MAXBUFFSIZE);
+    char buffer[MAXBUFFSIZE];
     char filePath[MAXBUFFSIZE];
 
     PCPKT packet = malloc(sizeof(CPKT));
@@ -214,11 +214,11 @@ void downloadFile(int sock){
 
     printf("lex");
     snprintf(filePath, strlen(buffer)+13, "clientFiles/%s", buffer);
-   // printf("file path to check:[%s]", filePath);
-   // if(duplicate(filePath)){
-     //   printf("You already have a file named %s in the clientFiles/ directory.\n", buffer);
-       // return;
-   // }
+    printf("file path to check:[%s]", filePath);
+    if(duplicate(filePath)){
+          printf("You already have a file named %s in the clientFiles/ directory.\n", buffer);
+          return;
+    }
     printf("[1]");
     packet->pl = strlen(buffer) + sizeof(unsigned int)*2;
     packet->type = dl;

@@ -141,7 +141,7 @@ void listFiles(int socketFD) {
         if(c == EOF){ break; }
         packet->data[i++] = c;
     }
-    packet->pl = i; // packet length is date + 2 unsigned ints.
+    packet->pl = i; // packet length is data + 2 unsigned ints.
     packet->packetNum = 0;
 
     byteCount = write(socketFD,(void *) packet, packet->pl + (2*sizeof(packet->pl)));
