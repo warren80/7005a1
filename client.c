@@ -29,7 +29,7 @@ void downloadFile(int sock) {
     // errant newline must be delt with
     fflush(stdin);
     fgets(buffer, MAXBUFFSIZE - 1, stdin);
-
+	
     buffer[strlen(buffer) - 1] = 0;
     snprintf(filePath, strlen(buffer)+13, "clientFiles/%s", buffer);
     printf("file path to check:[%s]\n", filePath);

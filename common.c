@@ -1,11 +1,5 @@
 #include "common.h"
 
-
-
-
-
-
-
 FILE* openFile(char* filename, char * access) {
     char file[FILENAME_MAX];
     printf("filename>%s<", filename);
@@ -25,14 +19,8 @@ void txFile(int socketFD, PCPKT packet) {
     char fileAccess[2];
     fileAccess[0] = 'r';
     fileAccess[1] = '\0';
-
-
-        printf("Could not open file named \"%s\".\n", packet->filename);
-
-
     FILE * pFile = openFile(packet->filename, fileAccess);
-
-     printf("file \"%s\".\n", packet->filename);
+    printf("file \"%s\".\n", packet->filename);
     if(pFile == NULL){
         printf("Could not open file named \"%s\".\n", packet->filename);
     }
